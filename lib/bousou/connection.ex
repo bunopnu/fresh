@@ -54,16 +54,23 @@ defmodule Bousou.Connection do
         "wss" -> {:https, :wss}
       end
 
-    conn_path =
+    path =
       case uri.query do
         nil -> uri.path
         query -> uri.path <> "?" <> query
       end
 
-    conn_headers = Keyword.get(data.opts, :headers, [])
+    headers = Keyword.get(data.opts, :headers, [])
 
-    with {:ok, conn} <- Mint.HTTP.connect(http_scheme, uri.host, uri.port, protocols: [:http1]),
-         {:ok, conn, ref} <- Mint.WebSocket.upgrade(ws_scheme, conn, conn_path, conn_headers) do
+    connect_opts = [
+      protocols: [:http1],
+      transport_opts: Keyword.get(data.opts, :transport_opts, [])
+    ]
+
+    upgrade_opts = Keyword.get(data.opts, :mint_upgrade_opts, [])
+
+    with {:ok, conn} <- Mint.HTTP.connect(http_scheme, uri.host, uri.port, connect_opts),
+         {:ok, conn, ref} <- Mint.WebSocket.upgrade(ws_scheme, conn, path, headers, upgrade_opts) do
       {:next_state, :connected, %__MODULE__{data | connection: conn, request_ref: ref}}
     else
       {:error, reason} ->

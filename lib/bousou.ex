@@ -12,6 +12,8 @@ defmodule Bousou do
           {:name, :gen_statem.server_name()}
           | {:headers, Mint.Types.headers()}
           | {:silence_pings, boolean()}
+          | {:transport_opts, keyword()}
+          | {:mint_upgrade_opts, keyword()}
 
   @type disconnect_code :: non_neg_integer() | nil
   @type disconnect_reason :: binary() | nil
