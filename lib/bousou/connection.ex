@@ -32,13 +32,13 @@ defmodule Bousou.Connection do
   end
 
   @impl true
-  def init({conn_uri, conn_state, conn_opts, module}) do
+  def init({uri, state, opts, module}) do
     data = %__MODULE__{
-      uri: conn_uri,
-      opts: conn_opts,
+      uri: uri,
+      opts: opts,
       module: module,
-      default_state: conn_state,
-      inner_state: conn_state
+      default_state: state,
+      inner_state: state
     }
 
     actions = [{:next_event, :internal, :connect}]

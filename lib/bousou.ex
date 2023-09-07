@@ -1,10 +1,17 @@
 defmodule Bousou do
   @moduledoc "Bousou (暴走) is a WebSocket client for Elixir."
 
+  alias Bousou.Spawn
+
   @type frame :: Mint.WebSocket.frame()
   @type headers :: Mint.Types.headers()
   @type state :: any()
   @type status :: Mint.Types.status()
+
+  @type opts ::
+          {:name, :gen_statem.server_name()}
+          | {:headers, Mint.Types.headers()}
+          | {:silence_pings, boolean()}
 
   @type disconnect_code :: non_neg_integer() | nil
   @type disconnect_reason :: binary() | nil
@@ -27,19 +34,14 @@ defmodule Bousou do
   @doc "Invoked while connection is closing."
   @callback handle_disconnect(disconnect_code(), disconnect_reason(), state()) :: disconnect_res()
 
-  @type conn_opts :: {:headers, Mint.Types.headers()} | {:silence_pings, boolean()}
-  @type opts :: {:name, module()} | {:uri, binary()} | {:init, any()} | {:opts, list(conn_opts)}
+  @spec start_link(binary(), module(), any(), list(opts())) :: :gen_statem.start_ret()
+  def start_link(uri, module, state, opts) do
+    Spawn.start(:start_link, uri, module, state, opts)
+  end
 
-  @spec start_link(atom(), list(opts())) :: :gen_statem.start_ret()
-  def start_link(module, opts) do
-    conn_name = Keyword.fetch!(opts, :name)
-    conn_uri = Keyword.fetch!(opts, :uri)
-    conn_state = Keyword.fetch!(opts, :init)
-    conn_opts = Keyword.get(opts, :opts, [])
-
-    initial = {conn_uri, conn_state, conn_opts, module}
-
-    :gen_statem.start_link({:local, conn_name}, Bousou.Connection, initial, [])
+  @spec start(binary(), module(), any(), list(opts())) :: :gen_statem.start_ret()
+  def start(uri, module, state, opts) do
+    Spawn.start(:start, uri, module, state, opts)
   end
 
   @spec send(:gen_statem.server_ref(), Mint.WebSocket.frame()) :: :ok
