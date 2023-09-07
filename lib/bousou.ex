@@ -15,7 +15,10 @@ defmodule Bousou do
   @doc "Invoked after connection is established."
   @callback handle_connect(status(), headers(), state()) :: generic_handle_res()
 
-  @doc "Invoked when receive new frame from connection."
+  @doc "Invoked when receive ping frame from connection."
+  @callback handle_ping(binary(), state()) :: generic_handle_res()
+
+  @doc "Invoked when receive frame from connection."
   @callback handle_frame(frame(), state()) :: generic_handle_res()
 
   @doc "Invoked to handle unknown messages."
@@ -24,7 +27,7 @@ defmodule Bousou do
   @doc "Invoked while connection is closing."
   @callback handle_disconnect(disconnect_code(), disconnect_reason(), state()) :: disconnect_res()
 
-  @type conn_opts :: {:headers, Mint.Types.headers()}
+  @type conn_opts :: {:headers, Mint.Types.headers()} | {:silence_pings, boolean()}
   @type opts :: {:name, module()} | {:uri, binary()} | {:init, any()} | {:opts, list(conn_opts)}
 
   @spec start_link(atom(), list(opts())) :: :gen_statem.start_ret()
