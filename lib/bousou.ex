@@ -166,6 +166,81 @@ defmodule Bousou do
             when code: non_neg_integer() | nil, reason: binary() | nil
 
   @doc """
+  This macro simplifies the implementation of WebSocket client. It automatically configures `child_spec/1` and `start_link/1` for the module, and provides empty handlers for all required callbacks, which can be overridden.
+
+  Starting the WebSocket client using `start_link/1` with the desired options:
+
+      iex> Example.WebSocket.start_link(uri: "wss://example.com/socket", state: %{}, opts: [
+      iex>   name: {:local, :ws_conn}
+      iex> ])
+      {:ok, #PID<0.233.0>}
+
+
+  Starting the WebSocket client using Supervisor (recommended):
+
+      children = [
+        {Example.WebSocket,
+         uri: "wss://example.com/socket",
+         state: %{},
+         opts: [
+           name: {:local, :ws_conn}
+         ]}
+        # Add other child specifications...
+      ]
+
+      Supervisor.start_link(children, strategy: :one_for_one)
+
+  """
+
+  defmacro __using__(opts) do
+    quote location: :keep do
+      @behaviour Bousou
+
+      @doc false
+      def child_spec(start_opts) do
+        %{
+          id: __MODULE__,
+          start: {__MODULE__, :start_link, [start_opts]},
+          restart: :transient
+        }
+        |> Supervisor.child_spec(unquote(Macro.escape(opts)))
+      end
+
+      @doc false
+      def start_link(start_opts) do
+        uri = Keyword.fetch!(start_opts, :uri)
+        state = Keyword.fetch!(start_opts, :state)
+        opts = Keyword.get(start_opts, :opts, [])
+
+        Bousou.start_link(uri, __MODULE__, state, opts)
+      end
+
+      @doc false
+      def handle_connect(_status, _headers, state), do: {:ok, state}
+
+      @doc false
+      def handle_frame(_frame, state), do: {:ok, state}
+
+      @doc false
+      def handle_ping(_message, state), do: {:ok, state}
+
+      @doc false
+      def handle_info(_message, state), do: {:ok, state}
+
+      @doc false
+      def handle_disconnect(_code, _reason, state), do: :reconnect
+
+      defoverridable child_spec: 1,
+                     start_link: 1,
+                     handle_connect: 3,
+                     handle_frame: 2,
+                     handle_ping: 2,
+                     handle_info: 2,
+                     handle_disconnect: 3
+    end
+  end
+
+  @doc """
   Starts a WebSocket connection.
 
   - `uri`: The URI to connect to.
