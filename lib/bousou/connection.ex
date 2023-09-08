@@ -200,18 +200,6 @@ defmodule Bousou.Connection do
     end
   end
 
-  defp handle_frame({:ping, message}, data) do
-    {:keep_state, data} = send_frame({:pong, message}, data)
-
-    if Keyword.get(data.opts, :silence_pings, true) do
-      data
-    else
-      message
-      |> data.module.handle_ping(data.inner_state)
-      |> handle_callback(data)
-    end
-  end
-
   defp handle_frame({:close, code, reason}, data) do
     log(:error, :dropping, {code, reason})
 
@@ -227,9 +215,23 @@ defmodule Bousou.Connection do
     end
   end
 
+  defp handle_frame({type, message} = frame, data) when type == :ping or type == :pong do
+    data =
+      if type == :ping do
+        {:keep_state, data} = send_frame({:pong, message}, data)
+        data
+      else
+        data
+      end
+
+    frame
+    |> data.module.handle_control(data.inner_state)
+    |> handle_callback(data)
+  end
+
   defp handle_frame(frame, data) do
     frame
-    |> data.module.handle_frame(data.inner_state)
+    |> data.module.handle_in(data.inner_state)
     |> handle_callback(data)
   end
 

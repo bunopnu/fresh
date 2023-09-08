@@ -2,10 +2,13 @@ defmodule Bousou do
   @moduledoc "Bousou is a WebSocket client for Elixir."
 
   alias Bousou.Spawn
-  alias Mint.{Types, WebSocket}
+  alias Mint.Types
 
   @typedoc "Represents the state of the given module, which can be anything."
   @type state :: any()
+
+  @type control_frame :: {:ping, binary()} | {:pong, binary()}
+  @type data_frame :: {:text, String.t()} | {:binary, binary()}
 
   @typedoc """
   Available optional configurations for WebSocket client configuration.
@@ -17,10 +20,6 @@ defmodule Bousou do
   - `:headers`: A list of headers to include in the WebSocket connection request. These headers will be sent during the connection upgrade.
 
     Example: `{:headers, [{"Authorization", "Bearer token"}]}`
-
-  - `:silence_pings`: If set to `true` (default), the WebSocket client will not trigger callback events for ping messages. Regardless of this setting, the client will always respond to ping messages with a pong.
-
-    Example: `{:silence_pings, true}`
 
   - `:transport_opts`: Additional options to pass to the transport layer used for the WebSocket connection. Consult the [Mint.HTTP documentation](https://hexdocs.pm/mint/Mint.HTTP.html#connect/4-options) for more informations.
 
@@ -38,7 +37,6 @@ defmodule Bousou do
   @type opts ::
           {:name, :gen_statem.server_name()}
           | {:headers, Types.headers()}
-          | {:silence_pings, boolean()}
           | {:transport_opts, keyword()}
           | {:mint_upgrade_opts, keyword()}
           | {:ping_interval, timeout()}
@@ -92,42 +90,45 @@ defmodule Bousou do
               generic_handle_res()
 
   @doc """
-  Callback is invoked when a ping frame is received from the server.
-
-  This callback will never be invoked if `:silence_pings` is set to `true`.
-
-  - `message`: The data of the received ping frame.
-  - `state`: The current state of the module.
-
-  ## Example
-
-      def handle_ping(message, state) do
-        IO.puts("Received ping with content: \#{message}!")
-        {:ok, state}
-      end
-
-  """
-  @callback handle_ping(message :: binary(), state()) :: generic_handle_res()
-
-  @doc """
-  Callback is invoked when a WebSocket frame is received from the server.
+  Callback is invoked when a control frame is received from the server.
 
   - `frame`: The received WebSocket frame.
   - `state`: The current state of the module.
 
   ## Example
 
-      def handle_frame({:text, message}, state) do
+      def handle_control({:ping, message}, state) do
+        IO.puts("Received ping with content: \#{message}!")
+        {:ok, state}
+      end
+
+      def handle_control({:pong, message}, state) do
+        IO.puts("Received pong with content: \#{message}!")
+        {:ok, state}
+      end
+
+  """
+  @callback handle_control(frame :: control_frame(), state()) :: generic_handle_res()
+
+  @doc """
+  Callback is invoked when a data frame is received from the server.
+
+  - `frame`: The received WebSocket frame.
+  - `state`: The current state of the module.
+
+  ## Example
+
+      def handle_in({:text, message}, state) do
         %{"data" => updated_data} = Jason.decode!(message)
         {:ok, updated_data}
       end
 
-      def handle_frame({:binary, _message}, state) do
+      def handle_in({:binary, _message}, state) do
         {:reply, [{:text, "i don't accept binary!"}], state}
       end
 
   """
-  @callback handle_frame(WebSocket.frame(), state()) :: generic_handle_res()
+  @callback handle_in(frame :: data_frame(), state()) :: generic_handle_res()
 
   @doc """
   Callback is invoked when an incomprehensible message is received.
@@ -224,10 +225,10 @@ defmodule Bousou do
       def handle_connect(_status, _headers, state), do: {:ok, state}
 
       @doc false
-      def handle_frame(_frame, state), do: {:ok, state}
+      def handle_control(_message, state), do: {:ok, state}
 
       @doc false
-      def handle_ping(_message, state), do: {:ok, state}
+      def handle_in(_frame, state), do: {:ok, state}
 
       @doc false
       def handle_info(_message, state), do: {:ok, state}
@@ -238,8 +239,8 @@ defmodule Bousou do
       defoverridable child_spec: 1,
                      start_link: 1,
                      handle_connect: 3,
-                     handle_frame: 2,
-                     handle_ping: 2,
+                     handle_control: 2,
+                     handle_in: 2,
                      handle_info: 2,
                      handle_disconnect: 3
     end

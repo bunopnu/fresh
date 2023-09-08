@@ -32,14 +32,14 @@ _Need to mention this example module contains approximately 13 lines of code._
 defmodule EchoWebSocket do
   use Bousou
 
-  def handle_frame({:text, state}, state) do
+  def handle_in({:text, state}, state) do
     IO.puts("Received state: #{state}")
     IO.puts("Start counting from 1")
 
     {:reply, [{:text, "1"}], 0}
   end
 
-  def handle_frame({:text, number}, _state) do
+  def handle_in({:text, number}, _state) do
     number = String.to_integer(number)
 
     IO.puts("Number: #{number}")

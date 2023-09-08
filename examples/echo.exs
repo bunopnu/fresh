@@ -6,14 +6,14 @@ defmodule EchoWebSocket do
     {:reply, [{:text, state}], state}
   end
 
-  def handle_frame({:text, state}, state) do
+  def handle_in({:text, state}, state) do
     IO.puts("Received state: #{state}")
     IO.puts("Start counting from 1:")
 
     {:reply, [{:text, "1"}], 0}
   end
 
-  def handle_frame({:text, number}, _state) do
+  def handle_in({:text, number}, _state) do
     number = String.to_integer(number)
 
     IO.puts("Number: #{number}")
@@ -34,6 +34,6 @@ EchoWebSocket.start_link(uri: "wss://ws.postman-echo.com/raw", state: "hello!", 
   name: {:local, Connection}
 ])
 
-Process.sleep(10_000)
+Process.sleep(20_000)
 
 send(Connection, :stop)
