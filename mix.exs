@@ -21,7 +21,8 @@ defmodule Bousou.MixProject do
     [
       {:mint, "~> 1.5"},
       {:mint_web_socket, "~> 1.0"},
-      {:castore, "~> 1.0"}
+      {:castore, "~> 1.0"},
+      {:ex_doc, "~> 0.30.6", only: :dev, runtime: false}
     ]
   end
 end
