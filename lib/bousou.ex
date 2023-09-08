@@ -30,6 +30,10 @@ defmodule Bousou do
 
     Example: `{:mint_upgrade_opts, [extensions: [Mint.WebSocket.PerMessageDeflate]]}`
 
+  - `:ping_interval`: This option is used to keep connection alive by sending empty ping frames based on given time as milliseconds. By default it is set to `30000`. To disable it, set it to `0`.
+
+    Example: `{:ping_interval, 60_000}`
+
   """
   @type opts ::
           {:name, :gen_statem.server_name()}
@@ -37,6 +41,7 @@ defmodule Bousou do
           | {:silence_pings, boolean()}
           | {:transport_opts, keyword()}
           | {:mint_upgrade_opts, keyword()}
+          | {:ping_interval, timeout()}
 
   @typedoc """
   Represents the result of a generic callback.

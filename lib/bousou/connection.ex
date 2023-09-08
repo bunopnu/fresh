@@ -41,8 +41,18 @@ defmodule Bousou.Connection do
       inner_state: state
     }
 
+    ping_interval = Keyword.get(opts, :ping_interval, 30_000)
+
+    if ping_interval != 0 do
+      :timer.send_interval(ping_interval, :ping)
+    end
+
     actions = [{:next_event, :internal, :connect}]
     {:ok, :disconnected, data, actions}
+  end
+
+  def disconnected(:info, :ping, _data) do
+    :keep_state_and_data
   end
 
   def disconnected(:internal, :connect, data) do
@@ -85,6 +95,10 @@ defmodule Bousou.Connection do
 
   def disconnected(:cast, {:request, _frame}, _data) do
     :keep_state_and_data
+  end
+
+  def connected(:info, :ping, data) do
+    send_frame({:ping, <<>>}, data)
   end
 
   def connected(:info, message, data) do
