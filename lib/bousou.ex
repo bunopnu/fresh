@@ -7,7 +7,10 @@ defmodule Bousou do
   @typedoc "Represents the state of the given module, which can be anything."
   @type state :: any()
 
+  @typedoc "Represents control frames in a WebSocket connection."
   @type control_frame :: {:ping, binary()} | {:pong, binary()}
+
+  @typedoc "Represents data frames in a WebSocket connection."
   @type data_frame :: {:text, String.t()} | {:binary, binary()}
 
   @typedoc """
