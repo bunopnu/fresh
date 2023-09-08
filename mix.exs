@@ -1,20 +1,37 @@
 defmodule Bousou.MixProject do
   use Mix.Project
 
+  @description "WebSocket client for Elixir, built atop the Mint ecosystem."
+  @source_url "https://github.com/bunopnu/bousou"
+  @version "0.1.0"
+
   def project do
     [
       app: :bousou,
-      version: "0.1.0",
+      version: @version,
       elixir: "~> 1.14",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
 
-      # documentation
+      # Package
+      package: package(),
+      description: @description,
+
+      # Documentation
       name: "Bousou",
-      source_url: "https://github.com/bunopnu/bousou",
+      source_url: @source_url,
       docs: [
         main: "readme",
-        extras: ["README.md"]
+        extras: [
+          "README.md": [title: "Introduction"],
+          LICENSE: [title: "License"]
+        ]
+      ],
+
+      # Dialyzer
+      dialyzer: [
+        plt_local_path: "priv/plts",
+        plt_core_path: "priv/plts"
       ]
     ]
   end
@@ -25,12 +42,22 @@ defmodule Bousou.MixProject do
     ]
   end
 
+  defp package do
+    [
+      licenses: ["MIT License"],
+      links: %{"GitHub" => @source_url}
+    ]
+  end
+
   defp deps do
     [
       {:mint, "~> 1.5"},
       {:mint_web_socket, "~> 1.0"},
       {:castore, "~> 1.0"},
-      {:ex_doc, "~> 0.30.6", only: :dev, runtime: false}
+
+      # Development
+      {:ex_doc, "~> 0.30.6", only: :dev, runtime: false},
+      {:dialyxir, "~> 1.3", only: :dev, runtime: false}
     ]
   end
 end
