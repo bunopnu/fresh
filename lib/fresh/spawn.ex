@@ -1,4 +1,4 @@
-defmodule Bousou.Spawn do
+defmodule Fresh.Spawn do
   @moduledoc false
 
   def start(function, uri, module, state, opts) do
@@ -7,10 +7,10 @@ defmodule Bousou.Spawn do
     args =
       case Keyword.get(opts, :name) do
         nil ->
-          [Bousou.Connection, init, []]
+          [Fresh.Connection, init, []]
 
         name ->
-          [name, Bousou.Connection, init, []]
+          [name, Fresh.Connection, init, []]
       end
 
     apply(:gen_statem, function, args)

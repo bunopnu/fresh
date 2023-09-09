@@ -1,4 +1,4 @@
-defmodule Bousou.Log do
+defmodule Fresh.Log do
   @moduledoc false
 
   require Logger
@@ -19,7 +19,7 @@ defmodule Bousou.Log do
   end
 
   defp add_title(message) do
-    "(Bousou ─ 暴走) #{message}"
+    "(Fresh) #{message}"
   end
 
   defp message_to_string(:established, _extra),

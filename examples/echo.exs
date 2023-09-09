@@ -1,5 +1,5 @@
 defmodule EchoWebSocket do
-  use Bousou
+  use Fresh
 
   def handle_connect(_status, headers, state) do
     IO.puts("Upgrade request headers: #{inspect(headers)}")

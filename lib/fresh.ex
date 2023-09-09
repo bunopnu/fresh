@@ -1,7 +1,7 @@
-defmodule Bousou do
-  @moduledoc "Bousou is a WebSocket client for Elixir."
+defmodule Fresh do
+  @moduledoc "Fresh is a WebSocket client for Elixir."
 
-  alias Bousou.Spawn
+  alias Fresh.Spawn
 
   @typedoc "Represents the state of the given module, which can be anything."
   @type state :: any()
@@ -250,7 +250,7 @@ defmodule Bousou do
 
   defmacro __using__(opts) do
     quote location: :keep do
-      @behaviour Bousou
+      @behaviour Fresh
 
       @doc false
       def child_spec(start_opts) do
@@ -268,7 +268,7 @@ defmodule Bousou do
         state = Keyword.fetch!(start_opts, :state)
         opts = Keyword.get(start_opts, :opts, [])
 
-        Bousou.start_link(uri, __MODULE__, state, opts)
+        Fresh.start_link(uri, __MODULE__, state, opts)
       end
 
       @doc false
@@ -325,7 +325,7 @@ defmodule Bousou do
 
   ## Example
 
-      iex> Bousou.start_link("wss://example.com/socket", Example.WebSocket, %{}, name: {:local, :ws_conn})
+      iex> Fresh.start_link("wss://example.com/socket", Example.WebSocket, %{}, name: {:local, :ws_conn})
       {:ok, #PID<0.233.0>}
 
   """
@@ -350,7 +350,7 @@ defmodule Bousou do
 
   ## Example
 
-      iex> Bousou.send(:ws_conn, {:text, "hi!"})
+      iex> Fresh.send(:ws_conn, {:text, "hi!"})
       :ok
 
   """

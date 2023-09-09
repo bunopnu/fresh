@@ -1,7 +1,7 @@
-defmodule Bousou.Connection do
+defmodule Fresh.Connection do
   @moduledoc false
 
-  import Bousou.Log
+  import Fresh.Log
 
   @behaviour :gen_statem
 

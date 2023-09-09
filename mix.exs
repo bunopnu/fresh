@@ -1,13 +1,13 @@
-defmodule Bousou.MixProject do
+defmodule Fresh.MixProject do
   use Mix.Project
 
   @description "WebSocket client for Elixir, built atop the Mint ecosystem."
-  @source_url "https://github.com/bunopnu/bousou"
+  @source_url "https://github.com/bunopnu/fresh"
   @version "0.1.0"
 
   def project do
     [
-      app: :bousou,
+      app: :fresh,
       version: @version,
       elixir: "~> 1.14",
       start_permanent: Mix.env() == :prod,
@@ -18,7 +18,7 @@ defmodule Bousou.MixProject do
       description: @description,
 
       # Documentation
-      name: "Bousou",
+      name: "Fresh",
       source_url: @source_url,
       docs: [
         main: "readme",
@@ -57,7 +57,7 @@ defmodule Bousou.MixProject do
 
       # Development
       {:ex_doc, "~> 0.30.6", only: :dev, runtime: false},
-      {:dialyxir, "~> 1.3", only: :dev, runtime: false}
+      {:dialyxir, "~> 1.4", only: :dev, runtime: false}
     ]
   end
 end
