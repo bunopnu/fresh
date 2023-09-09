@@ -46,6 +46,10 @@ defmodule Bousou do
 
     Example: `{:ping_interval, 60_000}`
 
+  - `:error_logging`: Allowing you to turn on/off logging `t:error/0` errors. Enabled by default.
+
+    Example: `{:error_logging, false}`
+
   """
   @type opts ::
           {:name, :gen_statem.server_name()}
@@ -53,6 +57,7 @@ defmodule Bousou do
           | {:transport_opts, keyword()}
           | {:mint_upgrade_opts, keyword()}
           | {:ping_interval, non_neg_integer()}
+          | {:error_logging, boolean()}
 
   @typedoc """
   Represents the result of a generic callback.

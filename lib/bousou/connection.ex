@@ -249,7 +249,9 @@ defmodule Bousou.Connection do
   ### ===============================================================
 
   defp handle_error({error_type, reason} = error, data, additional \\ []) do
-    log(:error, error_type, reason)
+    if Keyword.get(data.opts, :error_logging, true) do
+      log(:error, error_type, reason)
+    end
 
     error
     |> data.module.handle_error(data.inner_state)
