@@ -24,7 +24,7 @@ defmodule Fresh do
   @type data_frame :: {:text, String.t()} | {:binary, binary()}
 
   @typedoc """
-  Available optional configurations for WebSocket client configuration.
+  Represents optional configurations for WebSocket configuration.
 
   - `:name`: Registers a name for the WebSocket connection, allowing you to refer to it later using a name.
 
@@ -51,7 +51,7 @@ defmodule Fresh do
     Example: `{:error_logging, false}`
 
   """
-  @type opts ::
+  @type option ::
           {:name, :gen_statem.server_name()}
           | {:headers, Mint.Types.headers()}
           | {:transport_opts, keyword()}
@@ -329,13 +329,13 @@ defmodule Fresh do
       {:ok, #PID<0.233.0>}
 
   """
-  @spec start_link(binary(), module(), any(), list(opts())) :: :gen_statem.start_ret()
+  @spec start_link(binary(), module(), any(), list(option())) :: :gen_statem.start_ret()
   def start_link(uri, module, state, opts) do
     Spawn.start(:start_link, uri, module, state, opts)
   end
 
   @doc "Starts a WebSocket connection without linking process. Refer to `start_link/4` for more information."
-  @spec start(binary(), module(), any(), list(opts())) :: :gen_statem.start_ret()
+  @spec start(binary(), module(), any(), list(option())) :: :gen_statem.start_ret()
   def start(uri, module, state, opts) do
     Spawn.start(:start, uri, module, state, opts)
   end

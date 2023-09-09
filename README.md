@@ -1,22 +1,40 @@
 # Fresh
 
-**Fresh** is an attempt to create a light, reliable and high-level WebSocket client based on [Mint.WebSocket](https://github.com/elixir-mint/mint_web_socket) 🌱
+Fresh is an attempt to create a simple, reliable and flexible WebSocket client based on [Mint.WebSocket](https://github.com/elixir-mint/mint_web_socket) 🌱
 
-## Key Features
+> ⚠️ WORK IN PROGRESS ⚠️
+>
+> I recommend using an alternative WebSocket client such as [WebSockex](https://github.com/Azolo/websockex) until we have finished adding tests to identify and resolve potential common issues.
 
-**Fresh** aims to provide a straightforward, user-friendly API complete with examples and comprehensive documentation.
+## Why Fresh?
 
-**Fresh** maintains an enduring connection to the server, promptly re-establishing it as soon as the server closes the connection _(or something goes wrong in general)_.
+Discover the reasons behind choosing Fresh over existing libraries, summed up in three key aspects:
 
-**Fresh** provides almost complete control over the flow of WebSocket connections.
+- Simplicity
+- Resilience
+- Control
+
+### Simplicity
+
+Fresh is designed with simplicity in mind, offering a user-friendly API that includes clear examples and comprehensive documentation.
+
+### Resilience
+
+Fresh excels in ensuring a robust and enduring connection to the server. By default, Fresh promptly re-establishing connection when the server terminates the connection or encounters any connectivity issues. When used alongside Supervisor, Fresh delivers exceptional reliability.
+
+### Control
+
+With Fresh, you gain extensive control over the flow of WebSocket connections, including control over resilience. You can manage scenarios requiring reconnection, identify those that should be ignored, specify when to gracefully terminate a connection, and even instruct Supervisor to restart your process as needed. Additionally, Fresh allows you to leverage custom `Mint.WebSocket` options, transport layer options, custom headers, and more, providing you with the flexibility you require.
 
 ## Installation
 
 Package can be installed by adding `fresh` to your list of dependencies in `mix.exs`:
 
 ```elixir
-def deps do
-  [{:fresh, "~> 0.1.0"}]
+defp deps do
+  [
+    {:fresh, "~> 0.1.0-rc"}
+  ]
 end
 ```
 
@@ -52,4 +70,4 @@ Check out [HexDocs website](https://hexdocs.pm/fresh) for documentation and API 
 
 ## License
 
-**Fresh** is licensed under the MIT license.
+Fresh is licensed under the MIT license.

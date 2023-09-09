@@ -3,7 +3,7 @@ defmodule Fresh.MixProject do
 
   @description "WebSocket client for Elixir, built atop the Mint ecosystem."
   @source_url "https://github.com/bunopnu/fresh"
-  @version "0.1.0"
+  @version "0.1.0-rc"
 
   def project do
     [
