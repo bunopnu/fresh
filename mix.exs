@@ -44,8 +44,9 @@ defmodule Fresh.MixProject do
 
   defp package do
     [
-      licenses: ["MIT License"],
-      links: %{"GitHub" => @source_url}
+      licenses: ["MIT"],
+      links: %{"GitHub" => @source_url},
+      files: ~w(lib .formatter.exs mix.exs README.md LICENSE CHANGELOG.md)
     ]
   end
 
