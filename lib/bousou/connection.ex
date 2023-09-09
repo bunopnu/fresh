@@ -12,7 +12,6 @@ defmodule Bousou.Connection do
     :uri,
     :opts,
     :connection,
-    :error,
     :reconnect,
     :websocket,
     :request_ref,
@@ -84,12 +83,14 @@ defmodule Bousou.Connection do
       {:next_state, :connected, %__MODULE__{data | connection: conn, request_ref: ref}}
     else
       {:error, reason} ->
-        log(:error, :connecting_failed, reason)
-        reconnect(data)
+        {:connecting_failed, reason}
+        |> handle_error(data)
+        |> data_to_event()
 
       {:error, conn, reason} ->
-        log(:error, :upgrading_failed, reason)
-        reconnect(%__MODULE__{data | connection: conn})
+        {:upgrading_failed, reason}
+        |> handle_error(data, connection: conn)
+        |> data_to_event()
     end
   end
 
@@ -99,40 +100,32 @@ defmodule Bousou.Connection do
 
   def connected(:info, :ping, data) do
     send_frame({:ping, <<>>}, data)
+    |> data_to_event()
   end
 
   def connected(:info, message, data) do
     case Mint.WebSocket.stream(data.connection, message) do
       {:ok, conn, responses} ->
-        data = Enum.reduce(responses, %__MODULE__{data | connection: conn}, &handle_response/2)
-
-        cond do
-          data.error == true or data.reconnect == true ->
-            reconnect(data)
-
-          data.reconnect == false ->
-            {:stop, :normal}
-
-          true ->
-            {:keep_state, data}
-        end
+        responses
+        |> Enum.reduce(%__MODULE__{data | connection: conn}, &handle_response/2)
+        |> data_to_event()
 
       {:error, conn, reason, _responses} ->
-        log(:error, :streaming_failed, reason)
-        reconnect(%__MODULE__{data | connection: conn})
+        {:streaming_failed, reason}
+        |> handle_error(data, connection: conn)
+        |> data_to_event()
 
       :unknown ->
-        data =
-          message
-          |> data.module.handle_info(data.inner_state)
-          |> handle_callback(data)
-
-        {:keep_state, data}
+        message
+        |> data.module.handle_info(data.inner_state)
+        |> handle_generic_callback(data)
+        |> data_to_event()
     end
   end
 
   def connected(:cast, {:request, frame}, data) do
     send_frame(frame, data)
+    |> data_to_event()
   end
 
   ### ===============================================================
@@ -158,12 +151,15 @@ defmodule Bousou.Connection do
 
         data.response_status
         |> data.module.handle_connect(data.response_headers, data.inner_state)
-        |> handle_callback(data)
+        |> handle_generic_callback(data)
 
       {:error, conn, reason} ->
-        log(:error, :establishing_failed, reason)
-        %__MODULE__{data | connection: conn, error: true}
+        handle_error({:establishing_failed, reason}, data, connection: conn)
     end
+  end
+
+  defp handle_response({:error, _ref, reason}, data) do
+    handle_error({:processing_failed, reason}, data)
   end
 
   defp handle_response({:data, _ref, message}, data) do
@@ -172,8 +168,7 @@ defmodule Bousou.Connection do
         Enum.reduce(frames, %__MODULE__{data | websocket: websocket}, &handle_frame/2)
 
       {:error, websocket, reason} ->
-        log(:error, :decoding_failed, reason)
-        %__MODULE__{data | websocket: websocket, error: true}
+        handle_error({:decoding_failed, reason}, data, websocket: websocket)
     end
   end
 
@@ -188,83 +183,136 @@ defmodule Bousou.Connection do
          data = %__MODULE__{data | websocket: websocket},
          {:ok, conn} <-
            Mint.WebSocket.stream_request_body(data.connection, data.request_ref, frame_data) do
-      {:keep_state, %__MODULE__{data | connection: conn}}
+      %__MODULE__{data | connection: conn}
     else
       {:error, websocket, reason} when is_struct(websocket, Mint.WebSocket) ->
-        log(:error, :sending_failed, reason)
-        {:keep_state, %__MODULE__{data | websocket: websocket}}
+        {:encoding_failed, reason}
+        |> handle_error(data, websocket: websocket)
 
       {:error, conn, reason} ->
-        log(:error, :sending_failed, reason)
-        {:keep_state, %__MODULE__{data | connection: conn}}
+        {:casting_failed, reason}
+        |> handle_error(data, connection: conn)
     end
+  end
+
+  defp handle_frame({:error, reason}, data) do
+    handle_error({:decoding_failed, reason}, data)
   end
 
   defp handle_frame({:close, code, reason}, data) do
     log(:error, :dropping, {code, reason})
 
-    case data.module.handle_disconnect(code, reason, data.inner_state) do
-      {:reconnect, inner_state} ->
-        %__MODULE__{data | default_state: inner_state, reconnect: true}
-
-      :reconnect ->
-        %__MODULE__{data | reconnect: true}
-
-      :close ->
-        %__MODULE__{data | reconnect: false}
-    end
+    code
+    |> data.module.handle_disconnect(reason, data.inner_state)
+    |> handle_connection_callback(data)
   end
 
-  defp handle_frame({type, message} = frame, data) when type == :ping or type == :pong do
+  defp handle_frame({type, message} = frame, data) when type in [:ping, :pong] do
     data =
       if type == :ping do
-        {:keep_state, data} = send_frame({:pong, message}, data)
-        data
+        send_frame({:pong, message}, data)
       else
         data
       end
 
     frame
     |> data.module.handle_control(data.inner_state)
-    |> handle_callback(data)
+    |> handle_generic_callback(data)
   end
 
   defp handle_frame(frame, data) do
     frame
     |> data.module.handle_in(data.inner_state)
-    |> handle_callback(data)
+    |> handle_generic_callback(data)
   end
 
   ### ===============================================================
   ###
-  ###  Callback response handler
+  ###  Generic callback functions
   ###
   ### ===============================================================
 
-  defp handle_callback({:ok, inner_state}, data) do
+  defp handle_generic_callback({:ok, inner_state}, data) do
     %__MODULE__{data | inner_state: inner_state}
   end
 
-  defp handle_callback({:reply, frames, inner_state}, data) when is_list(frames) do
-    data =
-      Enum.reduce(frames, data, fn frame, acc ->
-        {:keep_state, new_acc} = send_frame(frame, acc)
-        new_acc
-      end)
-
-    %__MODULE__{data | inner_state: inner_state}
+  defp handle_generic_callback({:reply, frames, inner_state}, data) when is_list(frames) do
+    frames
+    |> Enum.reduce(data, &send_frame/2)
+    |> struct(inner_state: inner_state)
   end
 
   ### ===============================================================
   ###
-  ###  Clean reconnect
+  ###  Connection callback functions
+  ###
+  ### ===============================================================
+
+  defp handle_error({error_type, reason} = error, data, additional \\ []) do
+    log(:error, error_type, reason)
+
+    error
+    |> data.module.handle_error(data.inner_state)
+    |> handle_connection_callback(data, additional)
+  end
+
+  defp handle_connection_callback(error, data, additional \\ [])
+
+  defp handle_connection_callback({:ignore, inner_state}, data, additional) do
+    %__MODULE__{data | inner_state: inner_state, reconnect: nil}
+    |> struct(additional)
+  end
+
+  defp handle_connection_callback({:reconnect, inner_state}, data, additional) do
+    %__MODULE__{data | default_state: inner_state, reconnect: true}
+    |> struct(additional)
+  end
+
+  defp handle_connection_callback(:reconnect, data, additional) do
+    %__MODULE__{data | reconnect: true}
+    |> struct(additional)
+  end
+
+  defp handle_connection_callback(:close, data, additional) do
+    %__MODULE__{data | reconnect: false}
+    |> struct(additional)
+  end
+
+  defp handle_connection_callback({:close, reason}, data, additional) do
+    %__MODULE__{data | reconnect: {false, reason}}
+    |> struct(additional)
+  end
+
+  ### ===============================================================
+  ###
+  ###  Data to event
+  ###
+  ### ===============================================================
+
+  defp data_to_event(%__MODULE__{reconnect: true} = data) do
+    reconnect(data)
+  end
+
+  defp data_to_event(%__MODULE__{reconnect: false} = data) do
+    disconnect(data, :normal)
+  end
+
+  defp data_to_event(%__MODULE__{reconnect: {false, reason}} = data) do
+    disconnect(data, reason)
+  end
+
+  defp data_to_event(data) do
+    {:keep_state, data}
+  end
+
+  ### ===============================================================
+  ###
+  ###  Clean reconnect and disconnect
   ###
   ### ===============================================================
 
   defp reconnect(data) do
-    if data.connection do
-      Mint.HTTP.close(data.connection)
-    end
+    disconnect(data, :normal)
 
     data = %__MODULE__{
       uri: data.uri,
@@ -276,5 +324,13 @@ defmodule Bousou.Connection do
 
     actions = [{:next_event, :internal, :connect}]
     {:next_state, :disconnected, data, actions}
+  end
+
+  defp disconnect(data, reason) do
+    if data.connection do
+      Mint.HTTP.close(data.connection)
+    end
+
+    {:stop, reason}
   end
 end

@@ -2,10 +2,20 @@ defmodule Bousou do
   @moduledoc "Bousou is a WebSocket client for Elixir."
 
   alias Bousou.Spawn
-  alias Mint.Types
 
   @typedoc "Represents the state of the given module, which can be anything."
   @type state :: any()
+
+  @typedoc "Represents various error scenarios that can occur during WebSocket communication."
+  @type error ::
+          {:connecting_failed, Mint.Types.error()}
+          | {:upgrading_failed, Mint.WebSocket.error()}
+          | {:streaming_failed, Mint.Types.error()}
+          | {:establishing_failed, Mint.WebSocket.error()}
+          | {:processing_failed, term()}
+          | {:decoding_failed, any()}
+          | {:encoding_failed, any()}
+          | {:casting_failed, Mint.WebSocket.error()}
 
   @typedoc "Represents control frames in a WebSocket connection."
   @type control_frame :: {:ping, binary()} | {:pong, binary()}
@@ -39,10 +49,10 @@ defmodule Bousou do
   """
   @type opts ::
           {:name, :gen_statem.server_name()}
-          | {:headers, Types.headers()}
+          | {:headers, Mint.Types.headers()}
           | {:transport_opts, keyword()}
           | {:mint_upgrade_opts, keyword()}
-          | {:ping_interval, timeout()}
+          | {:ping_interval, non_neg_integer()}
 
   @typedoc """
   Represents the result of a generic callback.
@@ -56,20 +66,35 @@ defmodule Bousou do
     Example: `{:reply, [{:text, "Bousou"}, {:text, "暴走"}], state + 1}`
 
   """
-  @type generic_handle_res :: {:ok, state()} | {:reply, list(WebSocket.frame()), state()}
+  @type generic_handle_response ::
+          {:ok, state()}
+          | {:reply, list(Mint.WebSocket.frame()), state()}
 
   @typedoc """
-  Represents the result of a disconnect callback.
+  Represents the result of a connection handle (disconnect, error) callback.
 
-  - `{:reconnect, state}`: Indicates an intent to reconnect, with updated state.
+  - `{:ignore, state}`: Indicates an intent to ignore and continue.
+
+    Example: `{:ignore, state}`
+
+  - `{:reconnect, state}`: Indicates an intent to reconnect, with given state.
 
     Example: `{:reconnect, 0}`
 
-  - `:reconnect`: Indicates an intent to reconnect, with current state.
-  - `:close`: Indicates an intent to close connection.
+  - `{:close, reason}`: Indicates an intent to close connection, with custom reason. Can be used to force Supervisor to restart process.
+
+    Example: `{:close, {:error, :unknown}}`
+
+  - `:reconnect`: Indicates an intent to reconnect, with initial state.
+  - `:close`: Indicates an intent to close connection normally.
 
   """
-  @type disconnect_res :: {:reconnect, state()} | :reconnect | :close
+  @type connection_handle_response ::
+          {:ignore, state()}
+          | {:reconnect, state()}
+          | {:close, term()}
+          | :reconnect
+          | :close
 
   @doc """
   Callback is invoked when a WebSocket connection is successfully established.
@@ -89,8 +114,8 @@ defmodule Bousou do
       end
 
   """
-  @callback handle_connect(Types.status(), Types.headers(), state()) ::
-              generic_handle_res()
+  @callback handle_connect(status, headers, state()) :: generic_handle_response()
+            when status: Mint.Types.status(), headers: Mint.Types.headers()
 
   @doc """
   Callback is invoked when a control frame is received from the server.
@@ -111,7 +136,7 @@ defmodule Bousou do
       end
 
   """
-  @callback handle_control(frame :: control_frame(), state()) :: generic_handle_res()
+  @callback handle_control(frame :: control_frame(), state()) :: generic_handle_response()
 
   @doc """
   Callback is invoked when a data frame is received from the server.
@@ -131,7 +156,7 @@ defmodule Bousou do
       end
 
   """
-  @callback handle_in(frame :: data_frame(), state()) :: generic_handle_res()
+  @callback handle_in(frame :: data_frame(), state()) :: generic_handle_response()
 
   @doc """
   Callback is invoked when an incomprehensible message is received.
@@ -150,7 +175,24 @@ defmodule Bousou do
       send(:ws_conn, {:reply, "hello!"})
 
   """
-  @callback handle_info(data :: any(), state()) :: generic_handle_res()
+  @callback handle_info(data :: any(), state()) :: generic_handle_response()
+
+  @doc """
+  Callback is invoked when an error occurs, allows you to define custom error handling logic to handle various scenarios gracefully.
+
+  - `error`: The encountered error.
+  - `state`: The current state of the module.
+
+  ## Example
+
+      def handle_error({error, _reason}, state)
+          when error in [:encoding_failed, :casting_failed],
+          do: {:ignore, state}
+
+      def handle_error(_error, _state), do: :reconnect
+
+  """
+  @callback handle_error(error(), state()) :: connection_handle_response()
 
   @doc """
   Callback is invoked when the WebSocket connection is being disconnected.
@@ -167,11 +209,11 @@ defmodule Bousou do
 
   ## Example
 
-      def handle_disconnect(1002, _reason, state), do: :reconnect
-      def handle_disconnect(_code, _reason, state), do: :close
+      def handle_disconnect(1002, _reason, _state), do: :reconnect
+      def handle_disconnect(_code, _reason, _state), do: :close
 
   """
-  @callback handle_disconnect(code, reason, state()) :: disconnect_res()
+  @callback handle_disconnect(code, reason, state()) :: connection_handle_response()
             when code: non_neg_integer() | nil, reason: binary() | nil
 
   @doc """
@@ -237,7 +279,14 @@ defmodule Bousou do
       def handle_info(_message, state), do: {:ok, state}
 
       @doc false
-      def handle_disconnect(_code, _reason, state), do: :reconnect
+      def handle_error({error, _reason}, state)
+          when error in [:encoding_failed, :casting_failed],
+          do: {:ignore, state}
+
+      def handle_error(_error, _state), do: :reconnect
+
+      @doc false
+      def handle_disconnect(_code, _reason, _state), do: :reconnect
 
       defoverridable child_spec: 1,
                      start_link: 1,
@@ -245,6 +294,7 @@ defmodule Bousou do
                      handle_control: 2,
                      handle_in: 2,
                      handle_info: 2,
+                     handle_error: 2,
                      handle_disconnect: 3
     end
   end
