@@ -9,19 +9,19 @@ defmodule FreshTest do
     :ok
   end
 
-  describe "Connecting to Server" do
+  describe "Connecting to:" do
     setup do
       [welcome: "hello", pid: self(), opts: [error_logging: false]]
     end
 
     test "Non-Existing Domain", state do
-      TestClient.start_link(uri: "wss://none.bun.rip", state: state, opts: state[:opts])
+      TestClient.start(uri: "wss://none.bun.rip", state: state, opts: state[:opts])
 
       assert_receive {:error, {:connecting_failed, %Mint.TransportError{reason: :nxdomain}}}
     end
 
     test "Echo Server", state do
-      TestClient.start_link(
+      TestClient.start(
         uri: "ws://localhost:8080/websocket",
         state: state,
         opts: state[:opts]
@@ -29,9 +29,22 @@ defmodule FreshTest do
 
       assert_receive {:data, {:text, "hello"}}
     end
+
+    test "Echo Server with Registered Process", state do
+      TestClient.start(
+        uri: "ws://localhost:8080/websocket",
+        state: state,
+        opts: state[:opts] ++ [name: {:local, :client}]
+      )
+
+      assert_receive {:data, {:text, "hello"}}
+
+      Fresh.send(:client, {:text, "hi :)"})
+      assert_receive {:data, {:text, "hi :)"}}
+    end
   end
 
-  describe "Test Echo Server" do
+  describe "Test Echo Server:" do
     setup do
       state = [welcome: "hi!", pid: self(), opts: [error_logging: false]]
 
@@ -104,6 +117,10 @@ defmodule FreshTest do
 
       Fresh.send(pid, {:binary, "hello once again!"})
       assert_receive {:data, {:binary, "hello once again!"}}
+    end
+
+    test "Wait for Ping", _ do
+      assert_receive {:control, {:ping, ""}}, 35_000
     end
   end
 end

@@ -1,8 +1,4 @@
 defmodule Fresh.WebSocketHandler do
-  def init(%{header: [header]} = data) do
-    {:push, [{:text, "found:" <> header}], data}
-  end
-
   def init(data) do
     {:ok, data}
   end

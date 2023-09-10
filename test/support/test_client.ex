@@ -1,8 +1,8 @@
 defmodule Fresh.TestClient do
   use Fresh
 
-  def handle_connect(status, _headers, state) do
-    {:reply, [{:text, "#{status}"}, {:text, state[:welcome]}], state}
+  def handle_connect(_status, _headers, state) do
+    {:reply, [{:text, state[:welcome]}], state}
   end
 
   def handle_control(frame, state) do

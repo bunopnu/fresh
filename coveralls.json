@@ -5,6 +5,7 @@
   },
   "skip_files": [
     "test",
-    "deps"
+    "deps",
+    "lib/fresh/log.ex"
   ]
 }
