@@ -11,6 +11,7 @@ defmodule Fresh.MixProject do
       version: @version,
       elixir: "~> 1.14",
       start_permanent: Mix.env() == :prod,
+      elixirc_paths: elixirc_paths(Mix.env()),
       deps: deps(),
 
       # Package
@@ -36,6 +37,9 @@ defmodule Fresh.MixProject do
     ]
   end
 
+  defp elixirc_paths(:test), do: [~c"lib", ~c"test/support"]
+  defp elixirc_paths(_), do: [~c"lib"]
+
   def application do
     [
       extra_applications: [:logger]
@@ -58,7 +62,12 @@ defmodule Fresh.MixProject do
 
       # Development
       {:ex_doc, "~> 0.30.6", only: :dev, runtime: false},
-      {:dialyxir, "~> 1.4", only: :dev, runtime: false}
+      {:dialyxir, "~> 1.4", only: :dev, runtime: false},
+
+      # Testing
+      {:plug, "~> 1.14", only: :test},
+      {:bandit, "~> 0.7.7", only: :test},
+      {:websock_adapter, "~> 0.5.4", only: :test}
     ]
   end
 end
