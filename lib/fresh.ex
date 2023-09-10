@@ -272,6 +272,15 @@ defmodule Fresh do
       end
 
       @doc false
+      def start(start_opts) do
+        uri = Keyword.fetch!(start_opts, :uri)
+        state = Keyword.fetch!(start_opts, :state)
+        opts = Keyword.get(start_opts, :opts, [])
+
+        Fresh.start(uri, __MODULE__, state, opts)
+      end
+
+      @doc false
       def handle_connect(_status, _headers, state), do: {:ok, state}
 
       @doc false
