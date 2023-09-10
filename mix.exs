@@ -69,13 +69,13 @@ defmodule Fresh.MixProject do
 
       # Development
       {:ex_doc, "~> 0.30.6", only: :dev, runtime: false},
-      {:dialyxir, "~> 1.4", only: :dev, runtime: false},
 
       # Testing
       {:plug, "~> 1.14", only: :test},
       {:bandit, "~> 0.7.7", only: :test},
       {:websock_adapter, "~> 0.5.4", only: :test},
-      {:excoveralls, "~> 0.17.1", only: :test}
+      {:excoveralls, "~> 0.17.1", only: :test},
+      {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false}
     ]
   end
 end

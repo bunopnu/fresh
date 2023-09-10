@@ -4,11 +4,9 @@ on:
   - push
   - pull_request
 
-permissions:
-  contents: read
-
 jobs:
-  check:
+  test:
+    name: Test with Elixir ${{ matrix.elixir }} and OTP ${{ matrix.otp }}
     runs-on: ubuntu-latest
 
     env:
@@ -38,7 +36,7 @@ jobs:
           key: ${{ runner.os }}-elixir${{ matrix.elixir }}otp${{ matrix.otp }}-${{ hashFiles('**/mix.lock') }}-deps
 
       - name: Install Dependencies
-        run: mix deps.get && mix deps.unlock --check-unused
+        run: mix do deps.get, deps.compile, deps.unlock --check-unused
 
       - name: Compile Package
         run: mix compile --warnings-as-errors
