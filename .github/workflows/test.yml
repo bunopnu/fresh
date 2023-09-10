@@ -1,0 +1,66 @@
+name: Test Package
+
+on:
+  - push
+  - pull_request
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+
+    env:
+      MIX_ENV: test
+
+    strategy:
+      matrix:
+        include:
+          - otp: "26.0.2"
+            elixir: "1.15.5"
+          - otp: "25.3.2.6"
+            elixir: "1.14.5"
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Elixir
+        uses: erlef/setup-beam@v1
+        with:
+          elixir-version: ${{ matrix.elixir }}
+          otp-version: ${{ matrix.otp }}
+
+      - name: Restore Dependencies Cache
+        uses: actions/cache@v3
+        with:
+          path: deps
+          key: ${{ runner.os }}-elixir${{ matrix.elixir }}otp${{ matrix.otp }}-${{ hashFiles('**/mix.lock') }}-deps
+
+      - name: Install Dependencies
+        run: mix deps.get && mix deps.unlock --check-unused
+
+      - name: Compile Package
+        run: mix compile --warnings-as-errors
+
+      - name: Restore PLTs Cache
+        uses: actions/cache@v3
+        id: cache-plt
+        with:
+          path: priv/plts
+          key: ${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-plt
+
+      - name: Create PLTs
+        if: steps.cache-plt.outputs.cache-hit != 'true'
+        run: mix dialyzer --plt
+
+      - name: Check Format
+        run: mix format --check-formatted
+
+      - name: Run Dialyzer
+        run: mix dialyzer --format github
+
+      - name: Run Tests
+        run: mix coveralls.github --trace
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

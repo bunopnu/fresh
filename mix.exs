@@ -13,6 +13,13 @@ defmodule Fresh.MixProject do
       start_permanent: Mix.env() == :prod,
       elixirc_paths: elixirc_paths(Mix.env()),
       deps: deps(),
+      test_coverage: [tool: ExCoveralls],
+      preferred_cli_env: [
+        coveralls: :test,
+        "coveralls.github": :test,
+        "coveralls.html": :test,
+        docs: :dev
+      ],
 
       # Package
       package: package(),
@@ -67,7 +74,8 @@ defmodule Fresh.MixProject do
       # Testing
       {:plug, "~> 1.14", only: :test},
       {:bandit, "~> 0.7.7", only: :test},
-      {:websock_adapter, "~> 0.5.4", only: :test}
+      {:websock_adapter, "~> 0.5.4", only: :test},
+      {:excoveralls, "~> 0.17.1", only: :test}
     ]
   end
 end
