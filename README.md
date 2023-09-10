@@ -1,5 +1,7 @@
 # Fresh
 
+<img src='https://github.com/bunopnu/fresh/actions/workflows/test.yml/badge.svg' alt='Test Status' /> <img src='https://coveralls.io/repos/github/bunopnu/fresh/badge.svg' alt='Coverage Status' /> <img src='https://img.shields.io/hexpm/v/fresh.svg' alt='Hex' />
+
 Fresh is an attempt to create a simple, reliable and flexible WebSocket client based on [Mint.WebSocket](https://github.com/elixir-mint/mint_web_socket) 🌱
 
 > ⚠️ WORK IN PROGRESS ⚠️
