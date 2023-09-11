@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Missing `start/1` for `__using__/1` macro.
+
 ## [0.1.0-rc] - 2023-09-09
 
 - Initial release of Fresh.

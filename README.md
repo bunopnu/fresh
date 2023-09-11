@@ -1,12 +1,16 @@
 # Fresh
 
-<img src='https://github.com/bunopnu/fresh/actions/workflows/test.yml/badge.svg' alt='Test Status' /> <img src='https://coveralls.io/repos/github/bunopnu/fresh/badge.svg' alt='Coverage Status' /> <img src='https://img.shields.io/hexpm/v/fresh.svg' alt='Hex' />
+<div>
+  
+<img src='https://github.com/bunopnu/fresh/actions/workflows/test.yml/badge.svg' alt='Test Status' /> 
+<img src='https://coveralls.io/repos/github/bunopnu/fresh/badge.svg' alt='Coverage Status' />
+<img src='https://img.shields.io/hexpm/v/fresh.svg' alt='Hex' />
+
+<br/>
+
+</div>
 
 Fresh is an attempt to create a simple, reliable and flexible WebSocket client based on [Mint.WebSocket](https://github.com/elixir-mint/mint_web_socket) 🌱
-
-> ⚠️ WORK IN PROGRESS ⚠️
->
-> I recommend using an alternative WebSocket client such as [WebSockex](https://github.com/Azolo/websockex) until we have finished adding tests to identify and resolve potential common issues.
 
 ## Why Fresh?
 
@@ -39,6 +43,15 @@ defp deps do
   ]
 end
 ```
+
+### Compatibility
+
+This library is well-tested with the following versions of Elixir and Erlang/OTP:
+
+- Elixir 1.14 or newer
+- Erlang/OTP 25 or newer
+
+While it may also work with older versions, we strongly recommend using the specified minimum versions for the best experience.
 
 ## Example
 

@@ -30,9 +30,13 @@ defmodule EchoWebSocket do
   end
 end
 
-EchoWebSocket.start_link(uri: "wss://ws.postman-echo.com/raw", state: "hello!", opts: [
-  name: {:local, Connection}
-])
+EchoWebSocket.start_link(
+  uri: "wss://ws.postman-echo.com/raw",
+  state: "hello!",
+  opts: [
+    name: {:local, Connection}
+  ]
+)
 
 Process.sleep(20_000)
 
