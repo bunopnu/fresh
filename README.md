@@ -7,6 +7,7 @@
 <img src='https://img.shields.io/hexpm/v/fresh.svg' alt='Hex' />
 
 <br/>
+<br/>
 
 </div>
 
@@ -39,7 +40,7 @@ Package can be installed by adding `fresh` to your list of dependencies in `mix.
 ```elixir
 defp deps do
   [
-    {:fresh, "~> 0.1.0-rc"}
+    {:fresh, "~> 0.1.0"}
   ]
 end
 ```

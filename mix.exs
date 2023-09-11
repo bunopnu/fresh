@@ -2,8 +2,10 @@ defmodule Fresh.MixProject do
   use Mix.Project
 
   @description "WebSocket client for Elixir, built atop the Mint ecosystem"
+  @version "0.1.0"
+
   @source_url "https://github.com/bunopnu/fresh"
-  @version "0.1.0-rc"
+  @changelog_url "https://github.com/bunopnu/fresh/blob/main/CHANGELOG.md"
 
   def project do
     [
@@ -57,8 +59,9 @@ defmodule Fresh.MixProject do
   defp package do
     [
       licenses: ["MIT"],
-      links: %{"GitHub" => @source_url},
-      files: ~w(lib .formatter.exs mix.exs README.md LICENSE CHANGELOG.md)
+      links: %{"GitHub" => @source_url, "Changelog" => @changelog_url},
+      files: ~w(lib .formatter.exs mix.exs README.md LICENSE CHANGELOG.md),
+      maintainers: ["bunopnu"]
     ]
   end
 
