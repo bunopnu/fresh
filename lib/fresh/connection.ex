@@ -16,7 +16,8 @@ defmodule Fresh.Connection do
     :websocket,
     :request_ref,
     :response_status,
-    :response_headers
+    :response_headers,
+    :response_queue
   ]
 
   ### ===============================================================
@@ -37,7 +38,8 @@ defmodule Fresh.Connection do
       opts: opts,
       module: module,
       default_state: state,
-      inner_state: state
+      inner_state: state,
+      response_queue: []
     }
 
     ping_interval = Keyword.get(opts, :ping_interval, 30_000)
@@ -152,6 +154,7 @@ defmodule Fresh.Connection do
         data.response_status
         |> data.module.handle_connect(data.response_headers, data.inner_state)
         |> handle_generic_callback(data)
+        |> handle_response_queue()
 
       {:error, conn, reason} ->
         handle_error({:establishing_failed, reason}, data, connection: conn)
@@ -163,12 +166,16 @@ defmodule Fresh.Connection do
   end
 
   defp handle_response({:data, _ref, message}, data) do
-    case Mint.WebSocket.decode(data.websocket, message) do
-      {:ok, websocket, frames} ->
-        Enum.reduce(frames, %__MODULE__{data | websocket: websocket}, &handle_frame/2)
+    if data.websocket != nil do
+      case Mint.WebSocket.decode(data.websocket, message) do
+        {:ok, websocket, frames} ->
+          Enum.reduce(frames, %__MODULE__{data | websocket: websocket}, &handle_frame/2)
 
-      {:error, websocket, reason} ->
-        handle_error({:decoding_failed, reason}, data, websocket: websocket)
+        {:error, websocket, reason} ->
+          handle_error({:decoding_failed, reason}, data, websocket: websocket)
+      end
+    else
+      %__MODULE__{data | response_queue: [message | data.response_queue]}
     end
   end
 
@@ -309,6 +316,21 @@ defmodule Fresh.Connection do
 
   ### ===============================================================
   ###
+  ###  Queue functions
+  ###
+  ### ===============================================================
+
+  defp handle_response_queue(%__MODULE__{response_queue: [head | tail]} = data) do
+    data = handle_response({:data, :fake_ref, head}, data)
+    handle_response_queue(%__MODULE__{data | response_queue: tail})
+  end
+
+  defp handle_response_queue(%__MODULE__{response_queue: []} = data) do
+    data
+  end
+
+  ### ===============================================================
+  ###
   ###  Clean reconnect and disconnect
   ###
   ### ===============================================================
@@ -321,7 +343,8 @@ defmodule Fresh.Connection do
       opts: data.opts,
       module: data.module,
       default_state: data.default_state,
-      inner_state: data.default_state
+      inner_state: data.default_state,
+      response_queue: []
     }
 
     actions = [{:next_event, :internal, :connect}]
