@@ -11,7 +11,7 @@
 
 </div>
 
-Fresh is an attempt to create a simple, reliable and flexible WebSocket client based on [Mint.WebSocket](https://github.com/elixir-mint/mint_web_socket) 🌱
+Fresh is an attempt to create a simple, reliable and flexible WebSocket client built atop the [Mint](https://github.com/elixir-mint) ecosystem 🌱
 
 ## Why Fresh?
 
@@ -40,7 +40,7 @@ Package can be installed by adding `fresh` to your list of dependencies in `mix.
 ```elixir
 defp deps do
   [
-    {:fresh, "~> 0.1.0"}
+    {:fresh, "~> 0.1.1"}
   ]
 end
 ```
