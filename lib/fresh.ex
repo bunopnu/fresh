@@ -352,7 +352,7 @@ defmodule Fresh do
 
     Example: `%{}`
 
-  - `opts`: A list of options to configure the WebSocket connection. Refer to `t:opts/0` for available options.
+  - `opts`: A list of options to configure the WebSocket connection. Refer to `t:option/0` for available options.
 
     Example: `[name: {:local, :ws_conn}, headers: [{"Authorization", "Bearer token"}]]`
 
