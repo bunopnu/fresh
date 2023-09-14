@@ -1,5 +1,5 @@
 defmodule Fresh do
-  @moduledoc "Fresh is a WebSocket client for Elixir."
+  @moduledoc "Callback behaviours and functions for WebSocket client."
 
   alias Fresh.Spawn
 

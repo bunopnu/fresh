@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2023-09-14
+
+### Added
+
+- `handle_terminate/2` Callback for process termination.
+
+### Fixed
+
+- Minor documentation issues.
+
 ## [0.1.1] - 2023-09-12
 
 ### Fixed

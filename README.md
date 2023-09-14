@@ -40,7 +40,7 @@ Package can be installed by adding `fresh` to your list of dependencies in `mix.
 ```elixir
 defp deps do
   [
-    {:fresh, "~> 0.1.1"}
+    {:fresh, "~> 0.2.0"}
   ]
 end
 ```
