@@ -38,6 +38,6 @@ EchoWebSocket.start_link(
   ]
 )
 
-Process.sleep(20_000)
+Process.sleep(10_000)
 
 send(Connection, :stop)

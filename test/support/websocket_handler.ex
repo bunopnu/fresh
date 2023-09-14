@@ -8,7 +8,7 @@ defmodule Fresh.WebSocketHandler do
   end
 
   def handle_in({"close it!", [opcode: :text]}, state) do
-    {:stop, :normal, {1000, "yessir"}, state}
+    {:stop, :normal, {1013, "yessir"}, state}
   end
 
   def handle_in({message, [opcode: opcode]}, state) do

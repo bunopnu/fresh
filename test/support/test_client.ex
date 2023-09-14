@@ -31,6 +31,15 @@ defmodule Fresh.TestClient do
 
   def handle_disconnect(code, reason, state) do
     send(state[:pid], {:close, code, reason})
-    :reconnect
+
+    if code == 1013 do
+      {:close, :shutdown}
+    else
+      :reconnect
+    end
+  end
+
+  def handle_terminate(reason, state) do
+    send(state[:pid], {:terminate, reason})
   end
 end

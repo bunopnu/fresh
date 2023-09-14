@@ -222,7 +222,27 @@ defmodule Fresh do
             when code: non_neg_integer() | nil, reason: binary() | nil
 
   @doc """
-  This macro simplifies the implementation of WebSocket client. It automatically configures `child_spec/1` and `start_link/1` for the module, and provides empty handlers for all required callbacks, which can be overridden.
+  Callback is invoked when the process is about to terminate.
+
+  - `reason`: The reason for the termination.
+
+    Example: `:normal`, `:shutdown`, `{:error, :unknown_data}`
+
+  - `state`: The current state of the module.
+
+  Return value is always ignored.
+
+  ## Example
+
+      def handle_terminate(reason, _state) do
+        IO.puts("Process is terminating with reason: \#{inspect(reason)}")
+      end
+
+  """
+  @callback handle_terminate(reason :: any(), state()) :: ignored :: any()
+
+  @doc """
+  This macro simplifies the implementation of WebSocket client. It automatically configures `child_spec/1`, `start/1` and `start_link/1` for the module, and provides empty handlers for all required callbacks, which can be overridden.
 
   Starting the WebSocket client using `start_link/1` with the desired options:
 
@@ -302,6 +322,9 @@ defmodule Fresh do
       @doc false
       def handle_disconnect(_code, _reason, _state), do: :reconnect
 
+      @doc false
+      def handle_terminate(_reason, _state), do: :ok
+
       defoverridable child_spec: 1,
                      start_link: 1,
                      handle_connect: 3,
@@ -309,7 +332,8 @@ defmodule Fresh do
                      handle_in: 2,
                      handle_info: 2,
                      handle_error: 2,
-                     handle_disconnect: 3
+                     handle_disconnect: 3,
+                     handle_terminate: 2
     end
   end
 

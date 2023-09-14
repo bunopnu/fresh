@@ -130,6 +130,11 @@ defmodule Fresh.Connection do
     |> data_to_event()
   end
 
+  @impl true
+  def terminate(reason, _state, data) do
+    data.module.handle_terminate(reason, data.inner_state)
+  end
+
   ### ===============================================================
   ###
   ###  Response handler

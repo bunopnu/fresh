@@ -21,7 +21,7 @@ defmodule FreshTest do
     end
 
     test "Echo Server", state do
-      TestClient.start(
+      TestClient.start_link(
         uri: "ws://localhost:8080/websocket",
         state: state,
         opts: state[:opts]
@@ -31,7 +31,7 @@ defmodule FreshTest do
     end
 
     test "Echo Server with Registered Process", state do
-      TestClient.start(
+      TestClient.start_link(
         uri: "ws://localhost:8080/websocket",
         state: state,
         opts: state[:opts] ++ [name: {:local, :client}]
@@ -46,10 +46,10 @@ defmodule FreshTest do
 
   describe "Test Echo Server:" do
     setup do
-      state = [welcome: "hi!", pid: self(), opts: [error_logging: false]]
+      state = [welcome: "hi!", pid: self(), opts: [error_logging: false, ping_interval: 5_000]]
 
       {:ok, pid} =
-        TestClient.start_link(
+        TestClient.start(
           uri: "ws://localhost:8080/websocket",
           state: state,
           opts: state[:opts]
@@ -106,7 +106,9 @@ defmodule FreshTest do
 
     test "Close Connection with Text Frame", %{pid: pid} do
       Fresh.send(pid, {:text, "close it!"})
-      assert_receive {:close, 1000, "yessir"}
+
+      assert_receive {:close, 1013, "yessir"}
+      assert_receive {:terminate, :shutdown}
     end
 
     test "Close Connection and Reconnect", %{pid: pid} do
@@ -120,7 +122,7 @@ defmodule FreshTest do
     end
 
     test "Wait for Ping", _ do
-      assert_receive {:control, {:ping, ""}}, 35_000
+      assert_receive {:control, {:ping, ""}}, 10_000
     end
   end
 end
