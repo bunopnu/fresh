@@ -1,4 +1,6 @@
 defmodule Fresh.WebSocketHandler do
+  @moduledoc false
+
   def init(data) do
     {:ok, data}
   end

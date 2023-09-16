@@ -1,4 +1,6 @@
 defmodule Fresh.TestServer do
+  @moduledoc false
+
   def start(port) do
     children = [
       {Bandit, plug: Fresh.TestRouter, scheme: :http, port: port}

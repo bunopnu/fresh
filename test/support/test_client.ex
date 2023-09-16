@@ -1,4 +1,6 @@
 defmodule Fresh.TestClient do
+  @moduledoc false
+
   use Fresh
 
   def handle_connect(_status, _headers, state) do

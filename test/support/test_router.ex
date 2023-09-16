@@ -1,4 +1,6 @@
 defmodule Fresh.TestRouter do
+  @moduledoc false
+
   use Plug.Router
 
   import Plug.Conn

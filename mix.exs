@@ -71,15 +71,16 @@ defmodule Fresh.MixProject do
       {:mint_web_socket, "~> 1.0"},
       {:castore, "~> 1.0"},
 
-      # Development
+      # Development & Testing
       {:ex_doc, "~> 0.30.6", only: :dev, runtime: false},
+      {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
+      {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
 
-      # Testing
+      # Only Testing
       {:plug, "~> 1.14", only: :test},
       {:bandit, "~> 0.7.7", only: :test},
       {:websock_adapter, "~> 0.5.4", only: :test},
-      {:excoveralls, "~> 0.17.1", only: :test},
-      {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false}
+      {:excoveralls, "~> 0.17.1", only: :test}
     ]
   end
 end

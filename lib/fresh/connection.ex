@@ -27,7 +27,7 @@ defmodule Fresh.Connection do
   ### ===============================================================
 
   @impl true
-  def callback_mode() do
+  def callback_mode do
     :state_functions
   end
 
@@ -101,7 +101,8 @@ defmodule Fresh.Connection do
   end
 
   def connected(:info, :ping, data) do
-    send_frame({:ping, <<>>}, data)
+    {:ping, <<>>}
+    |> send_frame(data)
     |> data_to_event()
   end
 
@@ -126,7 +127,8 @@ defmodule Fresh.Connection do
   end
 
   def connected(:cast, {:request, frame}, data) do
-    send_frame(frame, data)
+    frame
+    |> send_frame(data)
     |> data_to_event()
   end
 

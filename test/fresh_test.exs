@@ -1,8 +1,8 @@
 defmodule FreshTest do
   use ExUnit.Case
 
-  alias Fresh.TestServer
   alias Fresh.TestClient
+  alias Fresh.TestServer
 
   setup_all do
     TestServer.start(8080)
