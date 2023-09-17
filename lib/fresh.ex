@@ -267,7 +267,6 @@ defmodule Fresh do
       Supervisor.start_link(children, strategy: :one_for_one)
 
   """
-
   defmacro __using__(opts) do
     quote location: :keep do
       @behaviour Fresh
@@ -390,5 +389,28 @@ defmodule Fresh do
   @spec send(:gen_statem.server_ref(), Mint.WebSocket.frame()) :: :ok
   def send(pid, frame) do
     :gen_statem.cast(pid, {:request, frame})
+  end
+
+  @doc """
+  Sends a WebSocket close frame to the server.
+
+  - `pid`: The WebSocket connection process.
+  - `code`: WebSocket close code.
+
+    Example: `1000`
+
+  - `reason`: WebSocket close reason.
+
+    Example: `"dunno"`
+
+  ## Example
+
+      iex> Fresh.close(:ws_conn, 1000, "dunno")
+      :ok
+
+  """
+  @spec close(:gen_statem.server_ref(), non_neg_integer(), binary()) :: :ok
+  def close(pid, code, reason) do
+    __MODULE__.send(pid, {:close, code, reason})
   end
 end

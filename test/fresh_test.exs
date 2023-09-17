@@ -112,7 +112,7 @@ defmodule FreshTest do
     end
 
     test "Close Connection and Reconnect", %{pid: pid} do
-      Fresh.send(pid, {:close, 1002, ""})
+      Fresh.close(pid, 1002, "")
 
       assert_receive {:close, 1000, ""}
       assert_receive {:data, {:text, "hi!"}}
