@@ -24,7 +24,7 @@ Fresh is designed with simplicity in mind, offering a user-friendly API that inc
 
 ### Resilience
 
-Fresh excels in ensuring a robust and enduring connection to the server. By default, Fresh promptly re-establishing connection when the server terminates the connection or encounters any connectivity issues. When used alongside Supervisor, Fresh delivers exceptional reliability.
+Fresh excels in ensuring a robust and enduring connection to the server. By default, Fresh promptly re-establishing the connection when the server terminates the connection or encounters any connectivity issues. When used alongside Supervisor, Fresh delivers exceptional reliability.
 
 ### Control
 
@@ -55,7 +55,7 @@ While it may also work with older versions, we strongly recommend using the spec
 
 Below is an example of a WebSocket client that handles incoming frames to implement a simple counter:
 
-_Need to mention this example module contains approximately 15 lines of code._
+_It is worth mentioning that this example module contains approximately 15 lines of code._
 
 ```elixir
 defmodule EchoWebSocket do
@@ -75,11 +75,11 @@ defmodule EchoWebSocket do
 end
 ```
 
-More examples can be found inside [examples/](https://github.com/bunopnu/fresh/tree/main/examples) folder.
+You can find more examples inside the [examples/](https://github.com/bunopnu/fresh/tree/main/examples) folder.
 
 ## Documentation
 
-Check out [HexDocs website](https://hexdocs.pm/fresh) for documentation and API reference.
+For documentation and API reference, please consult the [HexDocs](https://hexdocs.pm/fresh).
 
 ## License
 
