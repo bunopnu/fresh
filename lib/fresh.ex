@@ -239,6 +239,7 @@ defmodule Fresh do
       end
 
   """
+  @doc since: "0.2.0"
   @callback handle_terminate(reason :: any(), state()) :: ignored :: any()
 
   @doc """
@@ -409,6 +410,7 @@ defmodule Fresh do
       :ok
 
   """
+  @doc since: "0.2.1"
   @spec close(:gen_statem.server_ref(), non_neg_integer(), binary()) :: :ok
   def close(pid, code, reason) do
     __MODULE__.send(pid, {:close, code, reason})
