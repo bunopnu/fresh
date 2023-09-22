@@ -46,9 +46,13 @@ defmodule Fresh do
 
     Example: `{:ping_interval, 60_000}`
 
-  - `:error_logging`: Allowing you to turn on/off logging `t:error/0` errors. Enabled by default.
+  - `:error_logging`: Allows you to toggle logging for `t:error/0` error(s). Enabled by default.
 
     Example: `{:error_logging, false}`
+
+  - `:info_logging`: Allows you to toggle logging information message(s). Enabled by default.
+
+    Example: `{:info_logging, false}`
 
   """
   @type option ::
@@ -58,6 +62,7 @@ defmodule Fresh do
           | {:mint_upgrade_opts, keyword()}
           | {:ping_interval, non_neg_integer()}
           | {:error_logging, boolean()}
+          | {:info_logging, boolean()}
 
   @typedoc """
   Represents the response of a generic callback and enables you to manage state.

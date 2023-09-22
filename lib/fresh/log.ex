@@ -3,7 +3,7 @@ defmodule Fresh.Log do
 
   require Logger
 
-  def log(level, message, extra) do
+  def log(level, message, extra, opts) do
     formatted =
       message
       |> message_to_string(extra)
@@ -11,10 +11,14 @@ defmodule Fresh.Log do
 
     case level do
       :info ->
-        Logger.info(formatted)
+        if Keyword.get(opts, :info_logging, true) do
+          Logger.info(formatted)
+        end
 
       :error ->
-        Logger.error(formatted)
+        if Keyword.get(opts, :error_logging, true) do
+          Logger.error(formatted)
+        end
     end
   end
 

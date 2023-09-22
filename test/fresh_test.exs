@@ -11,7 +11,7 @@ defmodule FreshTest do
 
   describe "Connecting to:" do
     setup do
-      [welcome: "hello", pid: self(), opts: [error_logging: false]]
+      [welcome: "hello", pid: self(), opts: [error_logging: false, info_logging: false]]
     end
 
     test "Non-Existing Domain", state do
@@ -46,7 +46,11 @@ defmodule FreshTest do
 
   describe "Test Echo Server:" do
     setup do
-      state = [welcome: "hi!", pid: self(), opts: [error_logging: false, ping_interval: 5_000]]
+      state = [
+        welcome: "hi!",
+        pid: self(),
+        opts: [error_logging: false, info_logging: false, ping_interval: 5_000]
+      ]
 
       {:ok, pid} =
         TestClient.start(
