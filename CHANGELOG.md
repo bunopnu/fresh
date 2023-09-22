@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2023-09-22
+
+### Added
+
+- `{:close, code, reason, state}` Response for generic callback, allowing you to send close frame to the server easier.
+- `:info_logging` Option to toggle information message(s).
+
+### Changed
+
+- Disconnection message is now logged as information.
+
 ## [0.2.1] - 2023-09-17
 
 ### Added
