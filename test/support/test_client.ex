@@ -12,6 +12,10 @@ defmodule Fresh.TestClient do
     {:ok, state}
   end
 
+  def handle_in({:text, "try closing from callback"}, state) do
+    {:close, 1000, "normal", state}
+  end
+
   def handle_in(frame, state) do
     send(state[:pid], {:data, frame})
     {:ok, state}

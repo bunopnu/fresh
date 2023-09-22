@@ -10,7 +10,7 @@ defmodule Fresh.TestRouter do
 
   get "/websocket" do
     conn
-    |> WebSockAdapter.upgrade(Fresh.WebSocketHandler, [], timeout: :infinity, max_frame_size: 24)
+    |> WebSockAdapter.upgrade(Fresh.WebSocketHandler, [], timeout: :infinity)
     |> halt()
   end
 end

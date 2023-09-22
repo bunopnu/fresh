@@ -60,23 +60,28 @@ defmodule Fresh do
           | {:error_logging, boolean()}
 
   @typedoc """
-  Represents the result of a generic callback.
+  Represents the response of a generic callback and enables you to manage state.
 
-  - `{:ok, state}`: Indicates a successful operation, and it updates the state of the module.
+  - `{:ok, state}`: Indicates a successful operation.
 
-    Example: `{:ok, state + 1}`, `{:ok, state}`
+    Examples: `{:ok, state + 1}`, `{:ok, state}`
 
-  - `{:reply, frames, state}`: Indicates a successful operation with a reply to the server, and it updates the state of the module.
+  - `{:reply, frames, state}`: Denotes a successful operation with a list of WebSocket frames sent as a reply to the server.
 
-    Example: `{:reply, [{:text, "Bousou"}, {:text, "暴走"}], state + 1}`
+    Example: `{:reply, [{:text, "Bousou"}, {:text, "暴走"}], state}`
+
+  - `{:close, code, reason, state}`: Signifies the closure of the connection with a non-negative integer `code` and a binary `reason`.
+
+    Example: `{:close, 1000, "Normal Closure", state}` - Normal closure with a reason and no state change.
 
   """
   @type generic_handle_response ::
           {:ok, state()}
           | {:reply, list(Mint.WebSocket.frame()), state()}
+          | {:close, non_neg_integer(), binary(), state()}
 
   @typedoc """
-  Represents the result of a connection handle (disconnect, error) callback.
+  Represents the response for all connection handle callback.
 
   - `{:ignore, state}`: Indicates an intent to ignore and continue.
 

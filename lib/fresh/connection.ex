@@ -256,6 +256,11 @@ defmodule Fresh.Connection do
     |> struct(inner_state: inner_state)
   end
 
+  defp handle_generic_callback({:close, code, reason, inner_state}, data) do
+    send_frame({:close, code, reason}, data)
+    |> struct(inner_state: inner_state)
+  end
+
   ### ===============================================================
   ###
   ###  Connection callback functions
