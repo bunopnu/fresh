@@ -63,6 +63,8 @@ defmodule Fresh do
           | {:ping_interval, non_neg_integer()}
           | {:error_logging, boolean()}
           | {:info_logging, boolean()}
+          | {:backoff_initial, non_neg_integer()}
+          | {:backoff_max, non_neg_integer()}
 
   @typedoc """
   Represents the response of a generic callback and enables you to manage state.

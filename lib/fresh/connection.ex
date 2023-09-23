@@ -17,7 +17,8 @@ defmodule Fresh.Connection do
     :request_ref,
     :response_status,
     :response_headers,
-    :response_queue
+    :response_queue,
+    :backoff_time
   ]
 
   ### ===============================================================
@@ -39,7 +40,8 @@ defmodule Fresh.Connection do
       module: module,
       default_state: state,
       inner_state: state,
-      response_queue: []
+      response_queue: [],
+      backoff_time: Keyword.get(opts, :backoff_initial, 5_000)
     }
 
     ping_interval = Keyword.get(opts, :ping_interval, 30_000)
@@ -52,7 +54,11 @@ defmodule Fresh.Connection do
     {:ok, :disconnected, data, actions}
   end
 
-  def disconnected(:info, :ping, _data) do
+  def disconnected(:info, :reconnect, _data) do
+    {:keep_state_and_data, {:next_event, :internal, :connect}}
+  end
+
+  def disconnected(:info, _message, _data) do
     :keep_state_and_data
   end
 
@@ -162,6 +168,7 @@ defmodule Fresh.Connection do
         |> data.module.handle_connect(data.response_headers, data.inner_state)
         |> handle_generic_callback(data)
         |> handle_response_queue()
+        |> struct(backoff_time: Keyword.get(data.opts, :backoff_initial, 5_000))
 
       {:error, conn, reason} ->
         handle_error({:establishing_failed, reason}, data, connection: conn)
@@ -348,17 +355,20 @@ defmodule Fresh.Connection do
   defp reconnect(data) do
     disconnect(data, :normal)
 
+    backoff_max = Keyword.get(data.opts, :backoff_max, 30_000)
+    Process.send_after(self(), :reconnect, min(data.backoff_time, backoff_max))
+
     data = %__MODULE__{
       uri: data.uri,
       opts: data.opts,
       module: data.module,
       default_state: data.default_state,
       inner_state: data.default_state,
-      response_queue: []
+      response_queue: [],
+      backoff_time: round(data.backoff_time * 1.5)
     }
 
-    actions = [{:next_event, :internal, :connect}]
-    {:next_state, :disconnected, data, actions}
+    {:next_state, :disconnected, data, :hibernate}
   end
 
   defp disconnect(data, reason) do
