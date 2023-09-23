@@ -374,7 +374,7 @@ defmodule Fresh.Connection do
       backoff_time: round(backoff_time * 1.5)
     }
 
-    {:next_state, :disconnected, data, :hibernate}
+    {:next_state, :disconnected, data}
   end
 
   defp disconnect(data, reason) do

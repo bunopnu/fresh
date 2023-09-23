@@ -7,6 +7,7 @@ This changelog documents all noteworthy changes in the project. The format adher
 ### Added
 
 - Exponential backoff strategy for reconnection attempts.
+- `:hibernate_after` Option to automatically hibernate the WebSocket connection process after a specified duration of inactivity, helping conserve system resources.
 
 ### Changed
 

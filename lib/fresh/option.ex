@@ -16,4 +16,8 @@ defmodule Fresh.Option do
   def error_logging(opts), do: Keyword.get(opts, :error_logging, true)
 
   def info_logging(opts), do: Keyword.get(opts, :info_logging, true)
+
+  def hibernate_after(opts), do: Keyword.get(opts, :hibernate_after, :infinity)
+
+  def name(opts), do: Keyword.get(opts, :name)
 end

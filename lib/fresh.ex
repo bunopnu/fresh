@@ -96,6 +96,7 @@ defmodule Fresh do
   * `:info_logging` - Allows toggling logging for informational messages. Enabled by default.
   * `:backoff_initial` - Specifies the initial backoff time, in milliseconds, used between reconnection attempts. The default value is `250` (250 milliseconds).
   * `:backoff_max` - Sets the maximum time interval, in milliseconds, used between reconnection attempts. The default value is `30000` (30 seconds).
+  * `:hibernate_after` - Specifies a timeout value, in milliseconds, which the WebSocket connection process will enter hibernation if there is no activity. Hibernation is disabled by default.
 
   ## Example Configuration
 
@@ -105,7 +106,8 @@ defmodule Fresh do
         ping_interval: 60_000,
         error_logging: false,
         backoff_initial: 5_000,
-        backoff_max: 60_000
+        backoff_max: 60_000,
+        hibernate_after: 600_000
       ]
 
   """
@@ -119,6 +121,7 @@ defmodule Fresh do
           | {:info_logging, boolean()}
           | {:backoff_initial, non_neg_integer()}
           | {:backoff_max, non_neg_integer()}
+          | {:hibernate_after, timeout()}
 
   @typedoc "Represents the response of a generic callback and enables you to manage the state."
   @type generic_handle_response ::
