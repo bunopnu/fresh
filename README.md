@@ -24,7 +24,7 @@ Fresh is designed with simplicity in mind, offering a user-friendly API that inc
 
 ### Resilience
 
-Fresh excels in ensuring a robust and enduring connection to the server. By default, Fresh promptly re-establishing the connection when the server terminates the connection or encounters any connectivity issues. When used alongside Supervisor, Fresh delivers exceptional reliability.
+Fresh drew significant inspiration from Redix, particularly in terms of resilience. By default, Fresh promptly re-establishing the connection when the server terminates the connection or encounters any connectivity issues. When used alongside Supervisor, Fresh delivers exceptional reliability.
 
 ### Control
 
@@ -79,7 +79,7 @@ You can find more examples inside the [examples/](https://github.com/bunopnu/fre
 
 ## Documentation
 
-For documentation and API reference, please consult the [HexDocs](https://hexdocs.pm/fresh).
+For in-depth information and a detailed API reference, please consult the [HexDocs](https://hexdocs.pm/fresh).
 
 ## License
 

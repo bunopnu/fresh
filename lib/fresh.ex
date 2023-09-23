@@ -1,5 +1,66 @@
 defmodule Fresh do
-  @moduledoc "Callback behaviours and functions for WebSocket client."
+  @moduledoc """
+  This module provides a high-level interface for managing WebSocket connections.
+
+  It simplifies implementing WebSocket clients, allowing you to easily establish and manage connections with WebSocket servers.
+
+  ## Usage
+
+  To use this module, follow these steps:
+
+  1. Use the `use Fresh` macro in your WebSocket client module to automatically configure the necessary callbacks and functionality:
+
+         defmodule MyWebSocketClient do
+           use Fresh
+
+           # ...callbacks and functionalities.
+         end
+
+  2. Implement callback functions to handle connection events, received data frames, and more, as specified in the documentation.
+
+  3. Start WebSocket connections using `start_link/1` or `start/1` with the desired configuration options:
+
+         MyWebSocketClient.start_link(uri: "wss://example.com/socket", state: %{}, opts: [
+           name: {:local, :my_connection}
+         ])
+
+  ## How to Supervise
+
+  For effective management of WebSocket connections, consider supervising your WebSocket client processes.
+  You can add your WebSocket client module as a child to a supervisor, allowing the supervisor to monitor and restart the WebSocket client process in case of failures.
+
+      children = [
+        {MyWebSocketClient,
+         uri: "wss://example.com/socket",
+         state: %{},
+         opts: [
+           name: {:local, :my_connection}
+         ]}
+
+        # ...other child specifications
+      ]
+
+      Supervisor.start_link(children, strategy: :one_for_one)
+
+  ## Reconnection
+
+  In scenarios where the WebSocket connection is lost or encounters an error, you can configure reconnection behaviour using `c:handle_disconnect/3` and `c:handle_error/2` callbacks.
+  Depending on your requirements, you can implement logic to automatically reconnect to the server or take other appropriate actions.
+
+  ### Automatic Reconnection and Backoff
+
+  Fresh uses exponential backoff (with a fixed factor of `1.5`) strategy for reconnection attempts.
+  This means that after a connection loss, it waits for a brief interval before attempting to reconnect, gradually increasing the time between reconnection attempts until a maximum limit is reached.
+
+  The exponential backoff strategy helps prevent overwhelming the server with rapid reconnection attempts and allows for a more graceful recovery when the server is temporarily unavailable.
+
+  The default backoff parameters are as follows:
+
+  * Initial Backoff Interval: 250 milliseconds
+  * Maximum Backoff Interval: 30 seconds
+
+  You can customize these parameters by including them in your WebSocket client's configuration, as shown in the "Example Configuration" section of the `t:option/0` documentation.
+  """
 
   alias Fresh.Spawn
 
@@ -24,35 +85,28 @@ defmodule Fresh do
   @type data_frame :: {:text, String.t()} | {:binary, binary()}
 
   @typedoc """
-  Represents optional configurations for WebSocket configuration.
+  Represents optional configurations for WebSocket connections. Available options include:
 
-  - `:name`: Registers a name for the WebSocket connection, allowing you to refer to it later using a name.
+  * `:name` - Registers a name for the WebSocket connection, allowing you to refer to it later using a name.
+  * `:headers` - Specifies a list of headers to include in the WebSocket connection request. These headers will be sent during the connection upgrade.
+  * `:transport_opts` - Additional options to pass to the transport layer used for the WebSocket connection. Consult the [Mint.HTTP documentation](https://hexdocs.pm/mint/Mint.HTTP.html#connect/4-options) for more informations.
+  * `:mint_upgrade_opts` - Extra options to provide to [Mint.WebSocket](https://github.com/elixir-mint/mint_web_socket) during the WebSocket upgrade process. Consult the [Mint.WebSocket documentation](https://hexdocs.pm/mint_web_socket/Mint.WebSocket.html#upgrade/5-options) for additional information.
+  * `:ping_interval` - This option is used for keeping the WebSocket connection alive by sending empty ping frames at regular intervals, specified in milliseconds. The default value is `30000` (30 seconds). To disable ping frames, set this option to `0`.
+  * `:error_logging` - Allows toggling logging for error messages. Enabled by default.
+  * `:info_logging` - Allows toggling logging for informational messages. Enabled by default.
+  * `:backoff_initial` - Specifies the initial backoff time, in milliseconds, used between reconnection attempts. The default value is `250` (250 milliseconds).
+  * `:backoff_max` - Sets the maximum time interval, in milliseconds, used between reconnection attempts. The default value is `30000` (30 seconds).
 
-    Example: `{:local, Example.WebSocket}`
+  ## Example Configuration
 
-  - `:headers`: A list of headers to include in the WebSocket connection request. These headers will be sent during the connection upgrade.
-
-    Example: `{:headers, [{"Authorization", "Bearer token"}]}`
-
-  - `:transport_opts`: Additional options to pass to the transport layer used for the WebSocket connection. Consult the [Mint.HTTP documentation](https://hexdocs.pm/mint/Mint.HTTP.html#connect/4-options) for more informations.
-
-    Example: `{:transport_opts, [cacertfile: "/my/file"]}`
-
-  - `:mint_upgrade_opts`: Extra options to provide to [Mint.WebSocket](https://github.com/elixir-mint/mint_web_socket) during the WebSocket upgrade process. Consult the [Mint.WebSocket documentation](https://hexdocs.pm/mint_web_socket/Mint.WebSocket.html#upgrade/5-options) for additional information.
-
-    Example: `{:mint_upgrade_opts, [extensions: [Mint.WebSocket.PerMessageDeflate]]}`
-
-  - `:ping_interval`: This option is used to keep connection alive by sending empty ping frames based on given time as milliseconds. By default it is set to `30000`. To disable it, set it to `0`.
-
-    Example: `{:ping_interval, 60_000}`
-
-  - `:error_logging`: Allows you to toggle logging for `t:error/0` error(s). Enabled by default.
-
-    Example: `{:error_logging, false}`
-
-  - `:info_logging`: Allows you to toggle logging information message(s). Enabled by default.
-
-    Example: `{:info_logging, false}`
+      [
+        name: {:local, Example.Connection},
+        headers: [{"Authorization", "Bearer token"}],
+        ping_interval: 60_000,
+        error_logging: false,
+        backoff_initial: 5_000,
+        backoff_max: 60_000
+      ]
 
   """
   @type option ::
@@ -66,67 +120,33 @@ defmodule Fresh do
           | {:backoff_initial, non_neg_integer()}
           | {:backoff_max, non_neg_integer()}
 
-  @typedoc """
-  Represents the response of a generic callback and enables you to manage state.
-
-  - `{:ok, state}`: Indicates a successful operation.
-
-    Examples: `{:ok, state + 1}`, `{:ok, state}`
-
-  - `{:reply, frames, state}`: Denotes a successful operation with a list of WebSocket frames sent as a reply to the server.
-
-    Example: `{:reply, [{:text, "Bousou"}, {:text, "暴走"}], state}`
-
-  - `{:close, code, reason, state}`: Signifies the closure of the connection with a non-negative integer `code` and a binary `reason`.
-
-    Example: `{:close, 1000, "Normal Closure", state}` - Normal closure with a reason and no state change.
-
-  """
+  @typedoc "Represents the response of a generic callback and enables you to manage the state."
   @type generic_handle_response ::
           {:ok, state()}
           | {:reply, list(Mint.WebSocket.frame()), state()}
           | {:close, non_neg_integer(), binary(), state()}
 
-  @typedoc """
-  Represents the response for all connection handle callback.
-
-  - `{:ignore, state}`: Indicates an intent to ignore and continue.
-
-    Example: `{:ignore, state}`
-
-  - `{:reconnect, state}`: Indicates an intent to reconnect, with given state.
-
-    Example: `{:reconnect, 0}`
-
-  - `{:close, reason}`: Indicates an intent to close connection, with custom reason. Can be used to force Supervisor to restart process.
-
-    Example: `{:close, {:error, :unknown}}`
-
-  - `:reconnect`: Indicates an intent to reconnect, with initial state.
-  - `:close`: Indicates an intent to close connection normally.
-
-  """
+  @typedoc "Represents the response for all connection handle callbacks."
   @type connection_handle_response ::
           {:ignore, state()}
-          | {:reconnect, state()}
-          | {:close, term()}
+          | {:reconnect, initial :: state()}
+          | {:close, reason :: term()}
           | :reconnect
           | :close
 
   @doc """
-  Callback is invoked when a WebSocket connection is successfully established.
+  Callback invoked when a WebSocket connection is successfully established.
 
-  - `status`: The status received during the connection upgrade.
-  - `headers`: The headers received during the connection upgrade.
+  ## Parameters
 
-    Example: `[{"upgrade", "websocket"}, {"connection", "upgrade"}]`
-
-  - `state`: The current state of the module.
+  * `status` - The status received during the connection upgrade.
+  * `headers` - The headers received during the connection upgrade.
+  * `state` - The current state of the module.
 
   ## Example
 
       def handle_connect(_status, _headers, state) do
-        payload = "{ \\"op\\": 1, \\"data\\": {} }"
+        payload = "connection up!"
         {:reply, [{:text, payload}], state}
       end
 
@@ -135,10 +155,12 @@ defmodule Fresh do
             when status: Mint.Types.status(), headers: Mint.Types.headers()
 
   @doc """
-  Callback is invoked when a control frame is received from the server.
+  Callback invoked when a control frame is received from the server.
 
-  - `frame`: The received WebSocket frame.
-  - `state`: The current state of the module.
+  ## Parameters
+
+  * `frame` - The received WebSocket frame, which is a control frame.
+  * `state` - The current state of the module.
 
   ## Example
 
@@ -156,10 +178,12 @@ defmodule Fresh do
   @callback handle_control(frame :: control_frame(), state()) :: generic_handle_response()
 
   @doc """
-  Callback is invoked when a data frame is received from the server.
+  Callback invoked when a data frame is received from the server.
 
-  - `frame`: The received WebSocket frame.
-  - `state`: The current state of the module.
+  ## Parameters
+
+  * `frame` - The received WebSocket frame, which is a data frame.
+  * `state` - The current state of the module.
 
   ## Example
 
@@ -169,17 +193,19 @@ defmodule Fresh do
       end
 
       def handle_in({:binary, _message}, state) do
-        {:reply, [{:text, "i don't accept binary!"}], state}
+        {:reply, [{:text, "i prefer text :)"}], state}
       end
 
   """
   @callback handle_in(frame :: data_frame(), state()) :: generic_handle_response()
 
   @doc """
-  Callback is invoked when an incomprehensible message is received.
+  Callback invoked when an incomprehensible message is received.
 
-  - `data`: The received message.
-  - `state`: The current state of the module.
+  ## Parameters
+
+  * `data` - The received message, which can be any term.
+  * `state` - The current state of the module.
 
   ## Example
 
@@ -187,7 +213,7 @@ defmodule Fresh do
         {:reply, [{:text, message}], state}
       end
 
-  Can be used like:
+    Later can be used like:
 
       send(:ws_conn, {:reply, "hello!"})
 
@@ -195,10 +221,12 @@ defmodule Fresh do
   @callback handle_info(data :: any(), state()) :: generic_handle_response()
 
   @doc """
-  Callback is invoked when an error occurs, allows you to define custom error handling logic to handle various scenarios gracefully.
+  Callback invoked when an error is encountered during WebSocket communication, allowing you to define custom error handling logic for various scenarios.
 
-  - `error`: The encountered error.
-  - `state`: The current state of the module.
+  ## Parameters
+
+  * `error` - The encountered error.
+  * `state` - The current state of the module.
 
   ## Example
 
@@ -212,17 +240,13 @@ defmodule Fresh do
   @callback handle_error(error(), state()) :: connection_handle_response()
 
   @doc """
-  Callback is invoked when the WebSocket connection is being disconnected.
+  Callback invoked when the WebSocket connection is being disconnected.
 
-  - `code`: The disconnection code (if available).
+  ## Parameters
 
-    Example: `1002`
-
-  - `reason`: The reason for the disconnection (if available).
-
-    Example: `"timeout"`
-
-  - `state`: The current state of the module.
+  * `code` (optional) - The disconnection code, if available. It should be a non-negative integer.
+  * `reason` (optional) - The reason for the disconnection, if available. It should be a binary.
+  * `state` - The current state of the module.
 
   ## Example
 
@@ -234,15 +258,14 @@ defmodule Fresh do
             when code: non_neg_integer() | nil, reason: binary() | nil
 
   @doc """
-  Callback is invoked when the process is about to terminate.
+  Callback invoked when the WebSocket process is about to terminate.
 
-  - `reason`: The reason for the termination.
+  The return value of this callback is always disregarded.
 
-    Example: `:normal`, `:shutdown`, `{:error, :unknown_data}`
+  ## Parameters
 
-  - `state`: The current state of the module.
-
-  Return value is always ignored.
+  * `reason` - The reason for the termination. It can be any term.
+  * `state` - The current state of the module.
 
   ## Example
 
@@ -255,30 +278,9 @@ defmodule Fresh do
   @callback handle_terminate(reason :: any(), state()) :: ignored :: any()
 
   @doc """
-  This macro simplifies the implementation of WebSocket client. It automatically configures `child_spec/1`, `start/1` and `start_link/1` for the module, and provides empty handlers for all required callbacks, which can be overridden.
+  This macro simplifies the implementation of WebSocket client.
 
-  Starting the WebSocket client using `start_link/1` with the desired options:
-
-      iex> Example.WebSocket.start_link(uri: "wss://example.com/socket", state: %{}, opts: [
-      iex>   name: {:local, :ws_conn}
-      iex> ])
-      {:ok, #PID<0.233.0>}
-
-
-  Starting the WebSocket client using Supervisor (recommended):
-
-      children = [
-        {Example.WebSocket,
-         uri: "wss://example.com/socket",
-         state: %{},
-         opts: [
-           name: {:local, :ws_conn}
-         ]}
-        # Add other child specifications...
-      ]
-
-      Supervisor.start_link(children, strategy: :one_for_one)
-
+  It automatically configures `child_spec/1`, `start/1` and `start_link/1` for the module, and provides handlers for all required callbacks, which can be overridden.
   """
   defmacro __using__(opts) do
     quote location: :keep do
@@ -350,23 +352,14 @@ defmodule Fresh do
   end
 
   @doc """
-  Starts a WebSocket connection.
+  Starts a WebSocket connection and links the process.
 
-  - `uri`: The URI to connect to.
+  ## Parameters
 
-    Example: `"wss://example.com/socket"`
-
-  - `module`: The module that implementes the WebSocket client behaviour.
-
-    Example: `Example.WebSocket`
-
-  - `state`: The initial state to be passed to the module when it starts.
-
-    Example: `%{}`
-
-  - `opts`: A list of options to configure the WebSocket connection. Refer to `t:option/0` for available options.
-
-    Example: `[name: {:local, :ws_conn}, headers: [{"Authorization", "Bearer token"}]]`
+  * `uri` - The URI to connect to as a binary.
+  * `module` - The module that implements the WebSocket client behaviour.
+  * `state` - The initial state to be passed to the module when it starts.
+  * `opts` - A list of options to configure the WebSocket connection. Refer to `t:option/0` for available options.
 
   ## Example
 
@@ -379,7 +372,11 @@ defmodule Fresh do
     Spawn.start(:start_link, uri, module, state, opts)
   end
 
-  @doc "Starts a WebSocket connection without linking process. Refer to `start_link/4` for more information."
+  @doc """
+  Starts a WebSocket connection without linking the process.
+
+  This function is similar to `start_link/4` but does not link the process. Refer to `start_link/4` for parameters details.
+  """
   @spec start(binary(), module(), any(), list(option())) :: :gen_statem.start_ret()
   def start(uri, module, state, opts) do
     Spawn.start(:start, uri, module, state, opts)
@@ -388,10 +385,14 @@ defmodule Fresh do
   @doc """
   Sends a WebSocket frame to the server.
 
-  - `pid`: The WebSocket connection process.
-  - `frame`: The WebSocket frame to send.
+  ## Parameters
 
-    Example: `{:text, "hi!"}`
+  * `pid` - The reference to the WebSocket connection process.
+  * `frame` - The WebSocket frame to send.
+
+  ## Returns
+
+  This function always returns `:ok`.
 
   ## Example
 
@@ -407,18 +408,19 @@ defmodule Fresh do
   @doc """
   Sends a WebSocket close frame to the server.
 
-  - `pid`: The WebSocket connection process.
-  - `code`: WebSocket close code.
+  ## Parameters
 
-    Example: `1000`
+  * `pid` - The reference to the WebSocket connection process.
+  * `code` - An integer representing the WebSocket close code.
+  * `reason` - A binary string providing the reason for closing the WebSocket connection.
 
-  - `reason`: WebSocket close reason.
+  ## Returns
 
-    Example: `"dunno"`
+  This function always returns `:ok`.
 
   ## Example
 
-      iex> Fresh.close(:ws_conn, 1000, "dunno")
+      iex> Fresh.close(:ws_conn, 1000, "Normal Closure")
       :ok
 
   """

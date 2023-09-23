@@ -1,51 +1,56 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
+This changelog documents all noteworthy changes in the project. The format adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html) and is inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-
-## [Unreleased]
-
-## [0.3.0] - 2023-09-22
+## Next (v0.4.0)
 
 ### Added
 
-- `{:close, code, reason, state}` Response for generic callback, allowing you to send close frame to the server easier.
-- `:info_logging` Option to toggle information message(s).
+- Exponential backoff strategy for reconnection attempts.
 
 ### Changed
 
-- Disconnection message is now logged as information.
+- Enhanced documentation for a more user-friendly experience.
 
-## [0.2.1] - 2023-09-17
-
-### Added
-
-- `close/3` Function for sending close frame easier.
-
-## [0.2.0] - 2023-09-14
+## v0.3.0 - 22nd September 2023
 
 ### Added
 
-- `handle_terminate/2` Callback for process termination.
+- Introduced `{:close, code, reason, state}` response for the generic callback, simplifying the process of sending a close frame to the server.
+- Added the `:info_logging` option, allowing you to toggle information messages.
+
+### Changed
+
+- Now, disconnection messages are logged as information.
+
+## v0.2.1 - 17th September 2023
+
+### Added
+
+- Introduced the `close/3` function for easier sending of close frames.
+
+## v0.2.0 - 14th September 2023
+
+### Added
+
+- Implemented the `handle_terminate/2` callback for handling process termination.
 
 ### Fixed
 
-- Minor documentation issues.
+- Addressed minor documentation issues.
 
-## [0.1.1] - 2023-09-12
+## v0.1.1 - 12th September 2023
 
 ### Fixed
 
-- Add queue for incoming messages while websocket is `nil`.
+- Added a queue for incoming messages while the websocket is `nil`.
 
-## [0.1.0] - 2023-09-11
+## v0.1.0 - 11th September 2023
 
 ### Added
 
-- Missing `start/1` for `__using__/1` macro.
+- Included the missing `start/1` for the `__using__/1` macro.
 
-## [0.1.0-rc] - 2023-09-09
+## v0.1.0-rc - 9th September 2023
 
 - Initial release of Fresh.

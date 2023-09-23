@@ -11,7 +11,7 @@ defmodule Fresh.Option do
 
   def mint_upgrade_opts(opts), do: Keyword.get(opts, :mint_upgrade_opts, [])
 
-  def backoff_max(opts), do: Keyword.get(opts, :backoff_max, 5_000)
+  def backoff_max(opts), do: Keyword.get(opts, :backoff_max, 30_000)
 
   def error_logging(opts), do: Keyword.get(opts, :error_logging, true)
 
