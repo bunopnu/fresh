@@ -1,6 +1,8 @@
 defmodule Fresh.Connection do
   @moduledoc false
 
+  alias Fresh.Option
+
   import Fresh.Log
 
   @behaviour :gen_statem
@@ -41,10 +43,10 @@ defmodule Fresh.Connection do
       default_state: state,
       inner_state: state,
       response_queue: [],
-      backoff_time: Keyword.get(opts, :backoff_initial, 5_000)
+      backoff_time: Option.backoff_initial(opts)
     }
 
-    ping_interval = Keyword.get(opts, :ping_interval, 30_000)
+    ping_interval = Option.ping_interval(opts)
 
     if ping_interval != 0 do
       :timer.send_interval(ping_interval, :ping)
@@ -77,14 +79,14 @@ defmodule Fresh.Connection do
         query -> uri.path <> "?" <> query
       end
 
-    headers = Keyword.get(data.opts, :headers, [])
+    headers = Option.headers(data.opts)
 
     connect_opts = [
       protocols: [:http1],
-      transport_opts: Keyword.get(data.opts, :transport_opts, [])
+      transport_opts: Option.transport_opts(data.opts)
     ]
 
-    upgrade_opts = Keyword.get(data.opts, :mint_upgrade_opts, [])
+    upgrade_opts = Option.mint_upgrade_opts(data.opts)
 
     with {:ok, conn} <- Mint.HTTP.connect(http_scheme, uri.host, uri.port, connect_opts),
          {:ok, conn, ref} <- Mint.WebSocket.upgrade(ws_scheme, conn, path, headers, upgrade_opts) do
@@ -168,7 +170,7 @@ defmodule Fresh.Connection do
         |> data.module.handle_connect(data.response_headers, data.inner_state)
         |> handle_generic_callback(data)
         |> handle_response_queue()
-        |> struct(backoff_time: Keyword.get(data.opts, :backoff_initial, 5_000))
+        |> struct(backoff_time: Option.backoff_initial(data.opts))
 
       {:error, conn, reason} ->
         handle_error({:establishing_failed, reason}, data, connection: conn)
@@ -355,8 +357,12 @@ defmodule Fresh.Connection do
   defp reconnect(data) do
     disconnect(data, :normal)
 
-    backoff_max = Keyword.get(data.opts, :backoff_max, 30_000)
-    Process.send_after(self(), :reconnect, min(data.backoff_time, backoff_max))
+    backoff_time =
+      data.opts
+      |> Option.backoff_max()
+      |> min(data.backoff_time)
+
+    Process.send_after(self(), :reconnect, backoff_time)
 
     data = %__MODULE__{
       uri: data.uri,
@@ -365,7 +371,7 @@ defmodule Fresh.Connection do
       default_state: data.default_state,
       inner_state: data.default_state,
       response_queue: [],
-      backoff_time: round(data.backoff_time * 1.5)
+      backoff_time: round(backoff_time * 1.5)
     }
 
     {:next_state, :disconnected, data, :hibernate}

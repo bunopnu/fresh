@@ -49,7 +49,11 @@ defmodule FreshTest do
       state = [
         welcome: "hi!",
         pid: self(),
-        opts: [error_logging: false, info_logging: false, ping_interval: 5_000]
+        opts: [
+          error_logging: false,
+          info_logging: false,
+          ping_interval: 5_000
+        ]
       ]
 
       {:ok, pid} =

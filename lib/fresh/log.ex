@@ -1,6 +1,8 @@
 defmodule Fresh.Log do
   @moduledoc false
 
+  alias Fresh.Option
+
   require Logger
 
   def log(level, message, extra, opts) do
@@ -11,12 +13,12 @@ defmodule Fresh.Log do
 
     case level do
       :info ->
-        if Keyword.get(opts, :info_logging, true) do
+        if Option.info_logging(opts) do
           Logger.info(formatted)
         end
 
       :error ->
-        if Keyword.get(opts, :error_logging, true) do
+        if Option.error_logging(opts) do
           Logger.error(formatted)
         end
     end
