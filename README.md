@@ -37,7 +37,7 @@ Package can be installed by adding `fresh` to your list of dependencies in `mix.
 ```elixir
 defp deps do
   [
-    {:fresh, "~> 0.4.0"}
+    {:fresh, "~> 0.4.1"}
   ]
 end
 ```
@@ -63,14 +63,14 @@ defmodule EchoWebSocket do
 
   def handle_connect(_status, _headers, _state) do
     IO.puts("Start counting from 0")
-    {:reply, [{:text, "1"}], 0}
+    {:reply, {:text, "1"}, 0}
   end
 
   def handle_in({:text, number}, _state) do
     number = String.to_integer(number)
 
     IO.puts("Number: #{number}")
-    {:reply, [{:text, "#{number + 1}"}], number}
+    {:reply, {:text, "#{number + 1}"}, number}
   end
 end
 ```

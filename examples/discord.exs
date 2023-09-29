@@ -30,7 +30,7 @@ defmodule DiscordBot do
         }
       })
 
-    {:reply, [{:binary, payload}], %__MODULE__{state | ready: true}}
+    {:reply, {:binary, payload}, %__MODULE__{state | ready: true}}
   end
 
   defp handle_websocket(

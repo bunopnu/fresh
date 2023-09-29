@@ -4,6 +4,12 @@ This changelog documents all noteworthy changes in the project. The format adher
 
 ## Next
 
+## v0.4.1 - 29th September 2023
+
+### Changed
+
+- The payload for `:reply` has been refined to `Mint.WebSocket.frame() | [Mint.WebSocket.frame()]`, meaning it can now be either a single WebSocket frame or a list of WebSocket frames.
+
 ## v0.4.0 - 23rd September 2023
 
 ### Added

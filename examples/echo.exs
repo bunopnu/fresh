@@ -3,26 +3,26 @@ defmodule EchoWebSocket do
 
   def handle_connect(_status, headers, state) do
     IO.puts("Upgrade request headers: #{inspect(headers)}")
-    {:reply, [{:text, state}], state}
+    {:reply, {:text, state}, state}
   end
 
   def handle_in({:text, state}, state) do
     IO.puts("Received state: #{state}")
     IO.puts("Start counting from 1:")
 
-    {:reply, [{:text, "1"}], 0}
+    {:reply, {:text, "1"}, 0}
   end
 
   def handle_in({:text, number}, _state) do
     number = String.to_integer(number)
 
     IO.puts("Number: #{number}")
-    {:reply, [{:text, "#{number + 1}"}], number}
+    {:reply, {:text, "#{number + 1}"}, number}
   end
 
   def handle_info(:stop, state) do
     IO.puts("Stopping at: #{state}")
-    {:reply, [{:close, 1002, "example"}], state}
+    {:reply, {:close, 1002, "example"}, state}
   end
 
   def handle_disconnect(_code, _reason, _state) do
