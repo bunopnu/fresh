@@ -201,6 +201,10 @@ defmodule Fresh.Connection do
   ###
   ### ===============================================================
 
+  defp send_frame(frames, data) when is_list(frames) do
+    Enum.reduce(frames, data, &send_frame/2)
+  end
+
   defp send_frame(frame, data) do
     with {:ok, websocket, frame_data} <- Mint.WebSocket.encode(data.websocket, frame),
          data = %__MODULE__{data | websocket: websocket},
@@ -259,9 +263,9 @@ defmodule Fresh.Connection do
     %__MODULE__{data | inner_state: inner_state}
   end
 
-  defp handle_generic_callback({:reply, frames, inner_state}, data) when is_list(frames) do
-    frames
-    |> Enum.reduce(data, &send_frame/2)
+  defp handle_generic_callback({:reply, response, inner_state}, data) do
+    response
+    |> send_frame(data)
     |> struct(inner_state: inner_state)
   end
 
