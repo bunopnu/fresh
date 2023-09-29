@@ -126,8 +126,8 @@ defmodule Fresh do
   @typedoc "Represents the response of a generic callback and enables you to manage the state."
   @type generic_handle_response ::
           {:ok, state()}
-          | {:reply, list(Mint.WebSocket.frame()), state()}
-          | {:close, non_neg_integer(), binary(), state()}
+          | {:reply, Mint.WebSocket.frame() | [Mint.WebSocket.frame()], state()}
+          | {:close, code :: non_neg_integer(), reason :: binary(), state()}
 
   @typedoc "Represents the response for all connection handle callbacks."
   @type connection_handle_response ::
