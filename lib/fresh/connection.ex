@@ -108,6 +108,11 @@ defmodule Fresh.Connection do
     :keep_state_and_data
   end
 
+  def disconnected({:call, from}, :available, _data) do
+    :gen_statem.reply(from, false)
+    :keep_state_and_data
+  end
+
   def connected(:info, :ping, data) do
     {:ping, <<>>}
     |> send_frame(data)
@@ -138,6 +143,11 @@ defmodule Fresh.Connection do
     frame
     |> send_frame(data)
     |> data_to_event()
+  end
+
+  def connected({:call, from}, :available, %__MODULE__{connection: connection}) do
+    :gen_statem.reply(from, Mint.HTTP.open?(connection))
+    :keep_state_and_data
   end
 
   @impl true

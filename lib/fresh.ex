@@ -432,4 +432,27 @@ defmodule Fresh do
   def close(pid, code, reason) do
     __MODULE__.send(pid, {:close, code, reason})
   end
+
+  @doc """
+  Checks if the connection is available.
+
+  ## Parameters
+
+  * `pid` - The reference to the WebSocket connection process.
+
+  ## Returns
+
+  A `t:boolean/0` representing the state of the connection.
+
+  ## Example
+
+      iex> Fresh.open?(:ws_conn)
+      true
+
+  """
+  @doc since: "0.4.2"
+  @spec open?(:gen_statem.server_ref()) :: boolean()
+  def open?(pid) do
+    :gen_statem.call(pid, :available)
+  end
 end

@@ -113,8 +113,12 @@ defmodule FreshTest do
     end
 
     test "Close Connection from Callback", %{pid: pid} do
+      assert Fresh.open?(pid) == true
+
       Fresh.send(pid, {:text, "try closing from callback"})
+
       assert_receive {:close, 1000, ""}
+      assert Fresh.open?(pid) == false
     end
 
     test "Close Connection with Text Frame", %{pid: pid} do
