@@ -77,10 +77,10 @@ defmodule Fresh.MixProject do
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
 
       # Only Testing
-      {:plug, "~> 1.14", only: :test},
-      {:bandit, "~> 0.7.7", only: :test},
+      {:plug, "~> 1.15", only: :test},
+      {:bandit, "~> 1.0.0-pre.18", only: :test},
       {:websock_adapter, "~> 0.5.4", only: :test},
-      {:excoveralls, "~> 0.17.1", only: :test}
+      {:excoveralls, "~> 0.18.0", only: :test}
     ]
   end
 end
