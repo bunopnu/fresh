@@ -4,6 +4,12 @@ This changelog documents all noteworthy changes in the project. The format adher
 
 ## Next
 
+## v0.4.2 - 12th October 2023
+
+### Added
+
+- New `open?/1` function, which allows you to check whether a connection is open.
+
 ## v0.4.1 - 29th September 2023
 
 ### Changed
