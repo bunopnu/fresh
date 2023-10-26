@@ -73,10 +73,12 @@ defmodule Fresh.Connection do
         "wss" -> {:https, :wss}
       end
 
+    path = uri.path || "/"
+
     path =
       case uri.query do
-        nil -> uri.path
-        query -> uri.path <> "?" <> query
+        nil -> path
+        query -> path <> "?" <> query
       end
 
     headers = Option.headers(data.opts)
