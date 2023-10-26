@@ -1,8 +1,14 @@
 # Changelog
 
-This changelog documents all noteworthy changes in the project. The format adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html) and is inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+This changelog documents all noteworthy changes in the project.
 
 ## Next
+
+## v0.4.3 - 26th October 2023
+
+### Fixed
+
+- Failing to connect when no path is given in URI.
 
 ## v0.4.2 - 12th October 2023
 
