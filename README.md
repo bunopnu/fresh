@@ -10,12 +10,6 @@ Fresh is an attempt to create a simple, reliable and flexible WebSocket client b
 
 </div>
 
-## ⚙️ Fresh Rewrite in Progress ⚙️
-
-We are in the process of rewriting Fresh to enhance its codebase, improve both public and private documentation, and provide a superior developer experience for v1.
-
-Please note that there may be some API changes between v1 and v0, but we assure you that migrating to v1 will be a straightforward and hassle-free process.
-
 ## Why Fresh?
 
 Discover the reasons behind choosing Fresh over existing libraries, summed up in three key aspects:
